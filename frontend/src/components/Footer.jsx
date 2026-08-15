@@ -1,8 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Newspaper } from 'lucide-react';
+import api from '../services/api';
 
 export const Footer = () => {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get('/categories');
+        setCategories(res.data || []);
+      } catch (err) {
+        console.error('Failed to load categories in footer:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   return (
     <footer className="footer">
       <div className="footer-inner">
@@ -21,11 +36,10 @@ export const Footer = () => {
         <div>
           <h4 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Kategori Berita</h4>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-            <li><Link to="/category/teknologi">Teknologi & AI</Link></li>
-            <li><Link to="/category/politik">Politik & Pemerintahan</Link></li>
-            <li><Link to="/category/ekonomi">Ekonomi & Bisnis</Link></li>
-            <li><Link to="/category/olahraga">Olahraga</Link></li>
-            <li><Link to="/category/hiburan">Hiburan & Lifestyle</Link></li>
+            {categories.slice(0, 5).map(cat => (
+              <li key={cat.id}><Link to={`/category/${cat.slug}`}>{cat.name}</Link></li>
+            ))}
+            {categories.length === 0 && <li>Memuat kategori...</li>}
           </ul>
         </div>
 
@@ -41,7 +55,7 @@ export const Footer = () => {
       </div>
 
       <div className="footer-bottom">
-        <p>&copy; {new Date().getFullYear()} Portal Berita (React + Go Gin + PostgreSQL). Hak Cipta Dilindungi.</p>
+        <p>&copy; {new Date().getFullYear()} RUAS Media</p>
       </div>
     </footer>
   );

@@ -67,7 +67,7 @@ export const Navbar = () => {
               Beranda
             </Link>
           </li>
-          {categories.slice(0, 4).map((cat) => (
+          {categories.slice(0, 5).map((cat) => (
             <li key={cat.id}>
               <Link
                 to={`/category/${cat.slug}`}

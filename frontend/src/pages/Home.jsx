@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import api from '../services/api';
-import { ArticleCard } from '../components/ArticleCard';
+
 import { BreakingTicker } from '../components/BreakingTicker';
-import { TrendingUp, Sparkles, Folder } from 'lucide-react';
+import { HeroNews } from '../components/HeroNews';
+import { LatestNews } from '../components/LatestNews';
+import { PopularNews } from '../components/PopularNews';
+import { CategorySection } from '../components/CategorySection';
+import { EditorChoice } from '../components/EditorChoice';
+import { ArticleCard } from '../components/ArticleCard';
 
 export const Home = () => {
-  const [articles, setArticles] = useState([]);
-  const [featured, setFeatured] = useState(null);
+  const [allArticles, setAllArticles] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
@@ -19,18 +23,14 @@ export const Home = () => {
       setLoading(true);
       try {
         const [artRes, catRes] = await Promise.all([
-          api.get(`/articles?search=${encodeURIComponent(searchQuery)}`),
+          api.get(`/articles?search=${encodeURIComponent(searchQuery)}&limit=20`),
           api.get('/categories')
         ]);
 
-        const allArticles = artRes.data?.data || [];
-        setArticles(allArticles);
+        setAllArticles(artRes.data?.data || []);
         setCategories(catRes.data || []);
-
-        const feat = allArticles.find((a) => a.is_featured) || allArticles[0];
-        setFeatured(feat);
       } catch (err) {
-        console.error('Failed to load articles:', err);
+        console.error('Failed to load home data:', err);
       } finally {
         setLoading(false);
       }
@@ -39,76 +39,72 @@ export const Home = () => {
     fetchData();
   }, [searchQuery]);
 
-  return (
-    <>
-      <BreakingTicker articles={articles.slice(0, 5)} />
-      
+  // Derived data
+  const featured = allArticles.find((a) => a.is_featured) || allArticles[0];
+  const latestArticles = allArticles.filter(a => a.id !== featured?.id).slice(0, 4);
+  const popularArticles = [...allArticles].sort((a, b) => (b.views_count || 0) - (a.views_count || 0)).slice(0, 5);
+  const breakingArticles = allArticles.slice(0, 5);
+  const moreLatestArticles = allArticles.slice(4, 9); // For the LatestNews section if we want separate from Hero sidebar
+
+  if (loading) {
+    return (
+      <main className="main-content" style={{ textAlign: 'center', padding: '5rem 0' }}>
+        Memuat data portal berita...
+      </main>
+    );
+  }
+
+  // If search query is active, render search results instead of complex homepage
+  if (searchQuery) {
+    return (
       <main className="main-content">
-        {searchQuery && (
-          <div style={{ marginBottom: '1.5rem', background: 'var(--bg-secondary)', padding: '1rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'var(--glass-border)' }}>
-            <h2>Hasil pencarian untuk: <span style={{ color: 'var(--accent-primary)' }}>"{searchQuery}"</span></h2>
-          </div>
-        )}
-
-        {/* Featured Hero Article */}
-        {!searchQuery && featured && (
-          <div className="hero-article">
-            <img
-              src={featured.thumbnail_url || 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&auto=format&fit=crop&q=80'}
-              alt={featured.title}
-              className="hero-img"
-            />
-            <div className="hero-overlay">
-              {featured.category && (
-                <span className="badge-category" style={{ background: 'var(--accent-gradient)', color: '#fff', border: 'none' }}>
-                  <Sparkles size={12} style={{ display: 'inline', marginRight: '4px' }} />
-                  UTAMA • {featured.category.name}
-                </span>
-              )}
-              <h1 className="hero-title">
-                <Link to={`/article/${featured.slug}`}>{featured.title}</Link>
-              </h1>
-              <p style={{ color: 'rgba(255,255,255,0.85)', maxWidth: '750px', fontSize: '1.05rem' }}>
-                {featured.summary}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Main Section Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', marginTop: '2rem' }}>
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.6rem' }}>
-            <TrendingUp style={{ color: 'var(--accent-primary)' }} /> Berita Terkini
-          </h2>
+        <div style={{ marginBottom: '2rem', background: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: 'var(--glass-border)' }}>
+          <h2 style={{ fontSize: '1.5rem' }}>Hasil pencarian untuk: <span style={{ color: 'var(--accent-primary)' }}>"{searchQuery}"</span></h2>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Ditemukan {allArticles.length} artikel</p>
         </div>
-
-        {/* Categories Bar */}
-        <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>
-          <Link to="/" className="btn btn-primary btn-sm">Semua</Link>
-          {categories.map((cat) => (
-            <Link key={cat.id} to={`/category/${cat.slug}`} className="btn btn-outline btn-sm">
-              <Folder size={14} /> {cat.name}
-            </Link>
-          ))}
-        </div>
-
-        {/* Article Grid */}
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-muted)' }}>
-            Memuat berita terbaru...
-          </div>
-        ) : articles.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '4rem 0', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
-            <h3>Belum ada berita ditemukan</h3>
-            <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Silakan coba pencarian atau kata kunci lain.</p>
+        
+        {allArticles.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '4rem 0' }}>
+            <h3>Tidak ada artikel yang cocok</h3>
+            <Link to="/" className="btn btn-outline" style={{ marginTop: '1rem' }}>Kembali ke Beranda</Link>
           </div>
         ) : (
           <div className="news-grid">
-            {articles.map((art) => (
+            {allArticles.map((art) => (
               <ArticleCard key={art.id} article={art} />
             ))}
           </div>
         )}
+      </main>
+    );
+  }
+
+  return (
+    <>
+      <BreakingTicker articles={breakingArticles} />
+      
+      <main className="main-content">
+        {/* 1. Hero Section (65/35) - Kiri Featured, Kanan Latest */}
+        <HeroNews featured={featured} latest={latestArticles} />
+
+        {/* 2. Grid Utama (70/30) - Kiri Berita Terkini, Kanan Terpopuler */}
+        <div className="two-column-layout">
+          <div>
+            <LatestNews articles={moreLatestArticles} />
+          </div>
+          <aside>
+            <PopularNews articles={popularArticles} />
+          </aside>
+        </div>
+
+        {/* 3. Editor's Choice (Full width grid) */}
+        <EditorChoice />
+
+        {/* 4. Category Sections */}
+        {categories.slice(0, 5).map(cat => (
+          <CategorySection key={cat.id} category={cat} />
+        ))}
+
       </main>
     </>
   );
