@@ -9,6 +9,7 @@ import { CategoryPage } from './pages/CategoryPage';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { NotFound } from './pages/NotFound';
 
 // Guard: hanya izinkan role admin atau author. Tunggu auth selesai loading.
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -50,6 +51,8 @@ export function App() {
                 </ProtectedRoute>
               }
             />
+            {/* Catch-all 404 route */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
           <Footer />
         </div>

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-import { Newspaper, Folder, Plus, Edit, Trash2, X, Eye, FileText, CheckCircle } from 'lucide-react';
+import { Newspaper, Folder, Plus, Edit, Trash2, X, Eye, FileText, CheckCircle, Users } from 'lucide-react';
+import { AccountManagement } from '../components/AccountManagement';
 
 export const AdminDashboard = () => {
   const { user } = useAuth();
@@ -227,6 +228,22 @@ export const AdminDashboard = () => {
         >
           Kategori Berita ({categories.length})
         </button>
+        {user?.role === 'admin' && (
+          <button
+            onClick={() => setActiveTab('accounts')}
+            style={{
+              padding: '0.75rem 1.25rem',
+              background: 'transparent',
+              color: activeTab === 'accounts' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+              borderBottom: activeTab === 'accounts' ? '2px solid var(--accent-primary)' : 'none',
+              fontWeight: 700,
+              fontSize: '1rem',
+            }}
+            id="tab-accounts"
+          >
+            Pengaturan Akun
+          </button>
+        )}
       </div>
 
       {/* Articles Table */}
@@ -308,6 +325,11 @@ export const AdminDashboard = () => {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Account Management Tab */}
+      {activeTab === 'accounts' && user?.role === 'admin' && (
+        <AccountManagement />
       )}
 
       {/* Modal Article Form */}

@@ -108,3 +108,24 @@ type CreateCategoryRequest struct {
 type CreateCommentRequest struct {
 	Content string `json:"content" binding:"required"`
 }
+
+type CreateManagedUserRequest struct {
+	Name     string `json:"name" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+	Role     Role   `json:"role" binding:"required,oneof=admin author"`
+}
+
+type UpdateManagedUserRequest struct {
+	Name     string `json:"name" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Role     Role   `json:"role" binding:"required,oneof=admin author"`
+	Password string `json:"password" binding:"omitempty,min=6"`
+}
+
+type ManagedUsersResponse struct {
+	Data  []User `json:"data"`
+	Total int64  `json:"total"`
+	Page  int    `json:"page"`
+	Limit int    `json:"limit"`
+}

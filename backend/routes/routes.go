@@ -57,6 +57,16 @@ func SetupRouter() *gin.Engine {
 		api.GET("/comments/article/:articleId", controllers.GetCommentsByArticle)
 		api.POST("/comments/article/:articleId", middlewares.JWTAuthMiddleware(), controllers.CreateComment)
 		api.DELETE("/comments/:id", middlewares.JWTAuthMiddleware(), controllers.DeleteComment)
+
+		// User Management Admin
+		managedUsers := api.Group("/admin/users")
+		managedUsers.Use(middlewares.JWTAuthMiddleware(), middlewares.RequireRole(models.RoleAdmin))
+		{
+			managedUsers.GET("", controllers.ListManagedUsers)
+			managedUsers.POST("", controllers.CreateManagedUser)
+			managedUsers.PUT("/:id", controllers.UpdateManagedUser)
+			managedUsers.DELETE("/:id", controllers.DeleteManagedUser)
+		}
 	}
 
 	return r
