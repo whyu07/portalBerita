@@ -129,3 +129,7 @@ type ManagedUsersResponse struct {
 	Page  int    `json:"page"`
 	Limit int    `json:"limit"`
 }
+
+type UpdateArticleStatusRequest struct {
+	Status Status `json:"status" binding:"required"`
+}

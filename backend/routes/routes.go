@@ -53,6 +53,14 @@ func SetupRouter() *gin.Engine {
 			articlesAdmin.DELETE("/:id", controllers.DeleteArticle)
 		}
 
+		// Managed Articles (Dashboard)
+		managedArticles := api.Group("/admin/articles")
+		managedArticles.Use(middlewares.JWTAuthMiddleware(), middlewares.RequireRole(models.RoleAdmin, models.RoleAuthor))
+		{
+			managedArticles.GET("", controllers.GetManagedArticles)
+			managedArticles.PATCH("/:id/status", controllers.UpdateArticleStatus)
+		}
+
 		// Comments Routes
 		api.GET("/comments/article/:articleId", controllers.GetCommentsByArticle)
 		api.POST("/comments/article/:articleId", middlewares.JWTAuthMiddleware(), controllers.CreateComment)

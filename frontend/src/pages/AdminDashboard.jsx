@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-import { Newspaper, Folder, Plus, Edit, Trash2, X, Eye, FileText, CheckCircle, Users } from 'lucide-react';
+import { Newspaper, Folder, Plus, Edit, Trash2, X, Eye, EyeOff, FileText, CheckCircle, Users } from 'lucide-react';
 import { AccountManagement } from '../components/AccountManagement';
 
 export const AdminDashboard = () => {
@@ -41,7 +41,7 @@ export const AdminDashboard = () => {
     setLoading(true);
     try {
       const [artRes, catRes] = await Promise.all([
-        api.get('/articles?limit=100&status='),
+        api.get('/admin/articles?status=all&limit=100'),
         api.get('/categories'),
       ]);
       setArticles(artRes.data?.data || []);
@@ -113,6 +113,18 @@ export const AdminDashboard = () => {
       fetchData();
     } catch (err) {
       alert(err.response?.data?.error || 'Gagal menghapus artikel');
+    }
+  };
+
+  const handleToggleArticleStatus = async (art) => {
+    const nextStatus = art.status === 'published' ? 'draft' : 'published';
+    if (art.status === 'published' && !confirm('Apakah Anda yakin ingin menyembunyikan artikel ini dari publik?')) return;
+    
+    try {
+      await api.patch(`/admin/articles/${art.id}/status`, { status: nextStatus });
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Gagal mengubah status artikel');
     }
   };
 
@@ -271,12 +283,21 @@ export const AdminDashboard = () => {
                   <td>{art.author?.name || '-'}</td>
                   <td>
                     <span className="badge-category" style={{ background: art.status === 'published' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)', color: art.status === 'published' ? '#10b981' : '#f59e0b', borderColor: 'transparent' }}>
-                      {art.status}
+                      {art.status === 'published' ? 'Tayang' : 'Draft'}
                     </span>
                   </td>
                   <td>{art.views_count || 0}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      {art.status === 'published' ? (
+                        <button onClick={() => handleToggleArticleStatus(art)} className="btn btn-outline btn-sm" style={{ color: '#f59e0b', borderColor: '#f59e0b' }} title="Jadikan Draft / Sembunyikan">
+                          <EyeOff size={14} />
+                        </button>
+                      ) : (
+                        <button onClick={() => handleToggleArticleStatus(art)} className="btn btn-outline btn-sm" style={{ color: '#10b981', borderColor: '#10b981' }} title="Terbitkan / Publish">
+                          <Eye size={14} />
+                        </button>
+                      )}
                       <button onClick={() => handleOpenArticleModal(art)} className="btn btn-outline btn-sm" title="Edit Artikel">
                         <Edit size={14} />
                       </button>
@@ -399,6 +420,19 @@ export const AdminDashboard = () => {
                   onChange={(e) => setArticleForm({ ...articleForm, content: e.target.value })}
                   required
                 ></textarea>
+              </div>
+
+              <div className="form-group">
+                <label>Status</label>
+                <select
+                  className="form-control"
+                  value={articleForm.status}
+                  onChange={(e) => setArticleForm({ ...articleForm, status: e.target.value })}
+                  required
+                >
+                  <option value="published">Tayang (Published)</option>
+                  <option value="draft">Draft (Belum Tayang)</option>
+                </select>
               </div>
 
               <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
