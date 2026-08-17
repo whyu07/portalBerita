@@ -59,7 +59,12 @@ body {
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-heading);
   color: var(--text-primary);
   line-height: 1.25;
@@ -153,7 +158,8 @@ button {
   border-radius: var(--radius-sm);
 }
 
-.nav-link:hover, .nav-link.active {
+.nav-link:hover,
+.nav-link.active {
   color: var(--accent-primary);
   background: rgba(59, 130, 246, 0.1);
 }
@@ -393,7 +399,8 @@ button {
   text-align: left;
 }
 
-.admin-table th, .admin-table td {
+.admin-table th,
+.admin-table td {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--border-color);
 }
@@ -517,7 +524,8 @@ button {
 }
 
 .section-header-flex .section-title {
-  margin-bottom: -1px; /* Overlap border */
+  margin-bottom: -1px;
+  /* Overlap border */
 }
 
 /* Lists */
@@ -533,6 +541,7 @@ button {
   padding: 1rem 0;
   border-bottom: 1px solid var(--border-color);
 }
+
 .news-list-item:last-child {
   border-bottom: none;
 }
@@ -574,6 +583,7 @@ button {
   padding: 1rem 0 1rem 3.5rem;
   border-bottom: 1px dashed var(--border-color);
 }
+
 .popular-item:last-child {
   border-bottom: none;
 }
@@ -590,6 +600,7 @@ button {
   opacity: 0.2;
   line-height: 1;
 }
+
 .popular-item:nth-child(n+10)::before {
   content: counter(popular-counter);
 }
@@ -607,6 +618,7 @@ button {
   grid-template-columns: 1fr;
   gap: 1.5rem;
 }
+
 @media (min-width: 768px) {
   .category-section-grid {
     grid-template-columns: 1fr 1fr 1fr;
@@ -633,6 +645,7 @@ button {
   overflow: hidden;
   height: 400px;
 }
+
 @media (min-width: 992px) {
   .hero-main {
     height: 440px;
@@ -649,4 +662,3 @@ button {
   font-size: 0.8rem;
   color: var(--text-muted);
 }
-

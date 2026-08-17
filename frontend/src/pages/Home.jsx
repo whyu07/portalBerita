@@ -92,9 +92,6 @@ export const Home = () => {
           <div>
             <LatestNews articles={moreLatestArticles} />
           </div>
-          <aside>
-            <PopularNews articles={popularArticles} />
-          </aside>
         </div>
 
         {/* 3. Editor's Choice (Full width grid) */}

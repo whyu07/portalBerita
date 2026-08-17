@@ -180,11 +180,6 @@ export const NewsDetail = () => {
           </section>
         </article>
 
-        {/* Kolom Kanan 30%: Terpopuler */}
-        <aside>
-          <PopularNews articles={popularArticles} />
-        </aside>
-
       </div>
     </main>
   );

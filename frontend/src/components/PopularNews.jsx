@@ -11,16 +11,6 @@ export const PopularNews = ({ articles }) => {
         Terpopuler
       </h3>
       <div className="popular-list">
-        {articles.map((article) => (
-          <div key={article.id} className="popular-item">
-            <h4 className="popular-title">
-              <Link to={`/article/${article.slug}`}>{article.title}</Link>
-            </h4>
-            <div className="meta-text" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Eye size={12} /> {article.views_count} views
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );
