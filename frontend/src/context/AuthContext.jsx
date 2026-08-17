@@ -25,6 +25,15 @@ export const AuthProvider = ({ children }) => {
     fetchCurrentUser();
   }, []);
 
+  // Listen for forced logout from api.js 401 interceptor
+  useEffect(() => {
+    const handleForceLogout = () => {
+      setUser(null);
+    };
+    window.addEventListener('auth:logout', handleForceLogout);
+    return () => window.removeEventListener('auth:logout', handleForceLogout);
+  }, []);
+
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
     localStorage.setItem('portal_token', res.data.token);
