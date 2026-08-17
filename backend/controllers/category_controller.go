@@ -75,6 +75,14 @@ func UpdateCategory(c *gin.Context) {
 
 func DeleteCategory(c *gin.Context) {
 	id := c.Param("id")
+
+	var articleCount int64
+	config.DB.Model(&models.Article{}).Where("category_id = ?", id).Count(&articleCount)
+	if articleCount > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Tidak dapat menghapus kategori karena masih ada artikel yang menggunakan kategori ini."})
+		return
+	}
+
 	if err := config.DB.Delete(&models.Category{}, id).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghapus kategori"})
 		return

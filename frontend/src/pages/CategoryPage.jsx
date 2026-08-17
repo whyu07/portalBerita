@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
 import { ArticleCard } from '../components/ArticleCard';
 import { Folder, ArrowLeft } from 'lucide-react';
+import { NotFound } from './NotFound';
 
 export const CategoryPage = () => {
   const { slug } = useParams();
@@ -31,6 +32,10 @@ export const CategoryPage = () => {
 
     fetchCategoryArticles();
   }, [slug]);
+
+  if (!loading && !category) {
+    return <NotFound />;
+  }
 
   return (
     <main className="main-content">
