@@ -92,7 +92,7 @@ export const Navbar = () => {
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               {(user.role === 'admin' || user.role === 'author') && (
-                <Link to="/admin" className="btn btn-outline btn-sm" id="nav-admin-dashboard-link">
+                <Link to="/ruasdash" className="btn btn-outline btn-sm" id="nav-admin-dashboard-link">
                   <LayoutDashboard size={16} /> Admin
                 </Link>
               )}
@@ -105,12 +105,6 @@ export const Navbar = () => {
             </div>
           ) : (
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <Link to="/login" className="btn btn-outline btn-sm" id="nav-login-btn">
-                Masuk
-              </Link>
-              <Link to="/register" className="btn btn-primary btn-sm" id="nav-register-btn">
-                Daftar
-              </Link>
             </div>
           )}
         </div>

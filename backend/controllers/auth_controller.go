@@ -30,10 +30,8 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	role := req.Role
-	if role == "" {
-		role = models.RoleUser
-	}
+	// Force role to author regardless of client input
+	role := models.RoleAuthor
 
 	user := models.User{
 		Name:     req.Name,

@@ -149,7 +149,7 @@ export const NewsDetail = () => {
               </form>
             ) : (
               <div style={{ background: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: 'var(--radius-md)', marginBottom: '2.5rem', textAlign: 'center', border: 'var(--glass-border)' }}>
-                <p>Silakan <Link to="/login" style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Masuk</Link> atau <Link to="/register" style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Daftar</Link> untuk berpartisipasi dalam diskusi.</p>
+                <p>Silakan masuk untuk berpartisipasi dalam diskusi.</p>
               </div>
             )}
 

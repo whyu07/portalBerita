@@ -7,7 +7,7 @@ export const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('user');
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
@@ -18,7 +18,7 @@ export const Register = () => {
     setError('');
     setLoading(true);
     try {
-      await register(name, email, password, role);
+      await register(name, email, password);
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Gagal mendaftarkan akun baru');
@@ -87,18 +87,7 @@ export const Register = () => {
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="reg-role">Tipe Akun</label>
-            <select
-              id="reg-role"
-              className="form-control"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
-              <option value="user">Pembaca Berita (User)</option>
-              <option value="author">Penulis / Redaktur (Author)</option>
-            </select>
-          </div>
+
 
           <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }} disabled={loading} id="btn-register-submit">
             {loading ? 'Memproses...' : 'Daftar Sekarang'}
@@ -106,7 +95,7 @@ export const Register = () => {
         </form>
 
         <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-          Sudah punya akun? <Link to="/login" style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Masuk Ke Akun</Link>
+          Sudah punya akun? <Link to="/medialog" style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Masuk Ke Akun</Link>
         </div>
       </div>
     </main>
