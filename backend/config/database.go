@@ -63,6 +63,15 @@ func InitDB() *gorm.DB {
 		log.Fatalf("Auto Migration failed: %v", err)
 	}
 
+	// Backfill published_at for existing published articles
+	log.Println("🔄 Running backfill for PublishedAt...")
+	err = database.Model(&models.Article{}).
+		Where("status = ? AND published_at IS NULL", models.StatusPublished).
+		Update("published_at", gorm.Expr("created_at")).Error
+	if err != nil {
+		log.Printf("⚠️ Failed to backfill published_at: %v\n", err)
+	}
+
 	DB = database
 	SeedData(DB)
 	return DB
@@ -110,6 +119,10 @@ func SeedData(db *gorm.DB) {
 	}
 
 	// Seed Sample Articles
+	now1 := time.Now().Add(-2 * time.Hour)
+	now2 := time.Now().Add(-5 * time.Hour)
+	now3 := time.Now().Add(-1 * time.Hour)
+
 	articles := []models.Article{
 		{
 			Title:        "Peluncuran Satelit Komunikasi Terbaru Indonesia Berhasil Mulus",
@@ -122,7 +135,8 @@ func SeedData(db *gorm.DB) {
 			Status:       models.StatusPublished,
 			ViewsCount:   342,
 			IsFeatured:   true,
-			CreatedAt:    time.Now().Add(-2 * time.Hour),
+			CreatedAt:    now1,
+			PublishedAt:  &now1,
 		},
 		{
 			Title:        "Perekonomian Nasional Catat Pertumbuhan 5,2% di Kuartal Ini",
@@ -135,7 +149,8 @@ func SeedData(db *gorm.DB) {
 			Status:       models.StatusPublished,
 			ViewsCount:   189,
 			IsFeatured:   false,
-			CreatedAt:    time.Now().Add(-5 * time.Hour),
+			CreatedAt:    now2,
+			PublishedAt:  &now2,
 		},
 		{
 			Title:        "Timnas Indonesia Siap Hadapi Turnamen Tingkat Asia",
@@ -148,7 +163,8 @@ func SeedData(db *gorm.DB) {
 			Status:       models.StatusPublished,
 			ViewsCount:   512,
 			IsFeatured:   false,
-			CreatedAt:    time.Now().Add(-1 * time.Hour),
+			CreatedAt:    now3,
+			PublishedAt:  &now3,
 		},
 	}
 

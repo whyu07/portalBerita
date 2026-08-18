@@ -1,12 +1,11 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"portal-berita-backend/config"
 	"portal-berita-backend/models"
+	"portal-berita-backend/utils"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -27,6 +26,15 @@ func GetArticles(c *gin.Context) {
 		var category models.Category
 		if err := config.DB.Where("slug = ?", categorySlug).First(&category).Error; err == nil {
 			query = query.Where("category_id = ?", category.ID)
+		} else {
+			// Category not found, return empty array
+			c.JSON(http.StatusOK, gin.H{
+				"data":  []models.Article{},
+				"total": 0,
+				"page":  1,
+				"limit": 10, // dummy limit
+			})
+			return
 		}
 	}
 
@@ -47,7 +55,7 @@ func GetArticles(c *gin.Context) {
 	var total int64
 	query.Count(&total)
 
-	if err := query.Order("created_at DESC").Limit(limit).Offset(offset).Find(&articles).Error; err != nil {
+	if err := query.Order("published_at DESC, created_at DESC").Limit(limit).Offset(offset).Find(&articles).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil berita"})
 		return
 	}
@@ -82,10 +90,22 @@ func CreateArticle(c *gin.Context) {
 		return
 	}
 
+	// Validate Category
+	var categoryCount int64
+	config.DB.Model(&models.Category{}).Where("id = ?", req.CategoryID).Count(&categoryCount)
+	if categoryCount == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Kategori tidak ditemukan atau tidak valid"})
+		return
+	}
+
 	userIDVal, _ := c.Get("userID")
 	authorID := userIDVal.(uint)
 
-	slug := createSlug(req.Title) + "-" + fmt.Sprintf("%d", time.Now().Unix())
+	slug, err := utils.GenerateUniqueSlug(config.DB, req.Title)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	status := req.Status
 	if status != models.StatusDraft && status != models.StatusPublished {
@@ -100,9 +120,10 @@ func CreateArticle(c *gin.Context) {
 		ThumbnailURL: req.ThumbnailURL,
 		CategoryID:   req.CategoryID,
 		AuthorID:     authorID,
-		Status:       status,
 		IsFeatured:   req.IsFeatured,
 	}
+
+	utils.ApplyArticleStatus(&article, status)
 
 	if err := config.DB.Create(&article).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan artikel"})
@@ -122,9 +143,25 @@ func UpdateArticle(c *gin.Context) {
 		return
 	}
 
+	// Ownership check
+	userRole, _ := c.Get("userRole")
+	userID, _ := c.Get("userID")
+	if !utils.CanManageArticle(userRole.(string), userID.(uint), article.AuthorID) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Akses ditolak: Anda bukan pemilik artikel ini"})
+		return
+	}
+
 	var req models.CreateArticleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validate Category
+	var categoryCount int64
+	config.DB.Model(&models.Category{}).Where("id = ?", req.CategoryID).Count(&categoryCount)
+	if categoryCount == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Kategori tidak ditemukan atau tidak valid"})
 		return
 	}
 
@@ -133,10 +170,11 @@ func UpdateArticle(c *gin.Context) {
 	article.Content = req.Content
 	article.ThumbnailURL = req.ThumbnailURL
 	article.CategoryID = req.CategoryID
-	if req.Status == models.StatusDraft || req.Status == models.StatusPublished {
-		article.Status = req.Status
-	}
 	article.IsFeatured = req.IsFeatured
+
+	if req.Status == models.StatusDraft || req.Status == models.StatusPublished {
+		utils.ApplyArticleStatus(&article, req.Status)
+	}
 
 	if err := config.DB.Save(&article).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui artikel"})
@@ -149,17 +187,38 @@ func UpdateArticle(c *gin.Context) {
 
 func DeleteArticle(c *gin.Context) {
 	id := c.Param("id")
-	if err := config.DB.Delete(&models.Article{}, id).Error; err != nil {
+	var article models.Article
+
+	if err := config.DB.First(&article, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Artikel tidak ditemukan"})
+		return
+	}
+
+	// Ownership check
+	userRole, _ := c.Get("userRole")
+	userID, _ := c.Get("userID")
+	if !utils.CanManageArticle(userRole.(string), userID.(uint), article.AuthorID) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Akses ditolak: Anda bukan pemilik artikel ini"})
+		return
+	}
+
+	if err := config.DB.Delete(&article).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghapus artikel"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Artikel berhasil dihapus"})
 }
 
-// GetManagedArticles returns articles for dashboard with status filtering
 func GetManagedArticles(c *gin.Context) {
 	var articles []models.Article
 	query := config.DB.Model(&models.Article{}).Preload("Category").Preload("Author")
+
+	// Apply author filter if role is author
+	userRole, _ := c.Get("userRole")
+	if models.Role(userRole.(string)) == models.RoleAuthor {
+		userID, _ := c.Get("userID")
+		query = query.Where("author_id = ?", userID.(uint))
+	}
 
 	search := c.Query("search")
 	if search != "" {
@@ -194,7 +253,7 @@ func GetManagedArticles(c *gin.Context) {
 	var total int64
 	query.Count(&total)
 
-	if err := query.Order("created_at DESC").Limit(limit).Offset(offset).Find(&articles).Error; err != nil {
+	if err := query.Order("published_at DESC, created_at DESC").Limit(limit).Offset(offset).Find(&articles).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil berita"})
 		return
 	}
@@ -207,13 +266,20 @@ func GetManagedArticles(c *gin.Context) {
 	})
 }
 
-// UpdateArticleStatus updates only the status of an article
 func UpdateArticleStatus(c *gin.Context) {
 	id := c.Param("id")
 	var article models.Article
 
 	if err := config.DB.First(&article, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Artikel tidak ditemukan"})
+		return
+	}
+
+	// Ownership check
+	userRole, _ := c.Get("userRole")
+	userID, _ := c.Get("userID")
+	if !utils.CanManageArticle(userRole.(string), userID.(uint), article.AuthorID) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Akses ditolak: Anda bukan pemilik artikel ini"})
 		return
 	}
 
@@ -228,7 +294,9 @@ func UpdateArticleStatus(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Model(&article).Update("status", req.Status).Error; err != nil {
+	utils.ApplyArticleStatus(&article, req.Status)
+
+	if err := config.DB.Save(&article).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengubah status artikel"})
 		return
 	}

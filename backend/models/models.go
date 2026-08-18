@@ -59,6 +59,7 @@ type Article struct {
 	Comments     []Comment `gorm:"foreignKey:ArticleID;constraint:OnDelete:CASCADE" json:"comments,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+	PublishedAt  *time.Time `json:"published_at"`
 }
 
 // Comment Model
