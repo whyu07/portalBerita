@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"math"
 	"net/http"
 	"portal-berita-backend/config"
 	"portal-berita-backend/models"
@@ -47,25 +48,75 @@ func GetArticles(c *gin.Context) {
 		query = query.Where("is_featured = ?", true)
 	}
 
-	limitStr := c.DefaultQuery("limit", "10")
+	// Date Filters
+	date := c.Query("date")
+	dateFrom := c.Query("date_from")
+	dateTo := c.Query("date_to")
+
+	loc, _ := time.LoadLocation("Asia/Jakarta")
+
+	if date != "" {
+		parsedDate, err := time.ParseInLocation("2006-01-02", date, loc)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Format tanggal salah, gunakan YYYY-MM-DD"})
+			return
+		}
+		endOfDay := parsedDate.AddDate(0, 0, 1)
+		query = query.Where("published_at >= ? AND published_at < ?", parsedDate, endOfDay)
+	} else if dateFrom != "" || dateTo != "" {
+		if dateFrom != "" {
+			parsedFrom, err := time.ParseInLocation("2006-01-02", dateFrom, loc)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Format date_from salah, gunakan YYYY-MM-DD"})
+				return
+			}
+			query = query.Where("published_at >= ?", parsedFrom)
+		}
+		if dateTo != "" {
+			parsedTo, err := time.ParseInLocation("2006-01-02", dateTo, loc)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Format date_to salah, gunakan YYYY-MM-DD"})
+				return
+			}
+			endOfDay := parsedTo.AddDate(0, 0, 1)
+			query = query.Where("published_at < ?", endOfDay)
+		}
+	}
+
+	limitStr := c.DefaultQuery("limit", "12")
 	pageStr := c.DefaultQuery("page", "1")
 	limit, _ := strconv.Atoi(limitStr)
 	page, _ := strconv.Atoi(pageStr)
+
+	if page < 1 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 12
+	}
+	if limit > 50 {
+		limit = 50
+	}
 	offset := (page - 1) * limit
 
 	var total int64
 	query.Count(&total)
 
-	if err := query.Order("published_at DESC, created_at DESC").Limit(limit).Offset(offset).Find(&articles).Error; err != nil {
+	if err := query.Order("published_at DESC, created_at DESC, id DESC").Limit(limit).Offset(offset).Find(&articles).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil berita"})
 		return
 	}
 
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+	hasNext := page < totalPages
+
 	c.JSON(http.StatusOK, gin.H{
-		"data":  articles,
-		"total": total,
-		"page":  page,
-		"limit": limit,
+		"data":        articles,
+		"total":       total,
+		"page":        page,
+		"limit":       limit,
+		"total_pages": totalPages,
+		"has_next":    hasNext,
 	})
 }
 

@@ -9,6 +9,7 @@ import { CategoryPage } from './pages/CategoryPage';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import TagPage from "./pages/TagPage";
+import IndexPage from './pages/IndexPage';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { NotFound } from './pages/NotFound';
 
@@ -43,6 +44,7 @@ export function App() {
             <Route path="/article/:slug" element={<NewsDetail />} />
             <Route path="/category/:slug" element={<CategoryPage />} />
             <Route path="/tag/:slug" element={<TagPage />} />
+            <Route path="/indeks" element={<IndexPage />} />
             <Route path="/medialog" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route

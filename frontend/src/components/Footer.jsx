@@ -45,6 +45,7 @@ export const Footer = () => {
           <h4 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Navigasi</h4>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
             <li><Link to="/">Beranda Utama</Link></li>
+            <li><Link to="/indeks">Indeks Berita</Link></li>
           </ul>
         </div>
       </div>

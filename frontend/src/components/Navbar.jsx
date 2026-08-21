@@ -65,6 +65,11 @@ export const Navbar = () => {
               Beranda
             </Link>
           </li>
+          <li>
+            <Link to="/indeks" className={`nav-link ${location.pathname === '/indeks' ? 'active' : ''}`}>
+              Indeks Berita
+            </Link>
+          </li>
           {categories.slice(0, 5).map((cat) => (
             <li key={cat.id}>
               <Link

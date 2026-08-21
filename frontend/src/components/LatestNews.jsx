@@ -43,9 +43,6 @@ export const LatestNews = ({ articles }) => {
           </div>
         ))}
       </div>
-      <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-        <Link to="/" className="btn btn-outline">Lihat Semua Berita</Link>
-      </div>
     </div>
   );
 };
