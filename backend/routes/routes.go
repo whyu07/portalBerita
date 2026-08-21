@@ -57,6 +57,7 @@ func SetupRouter() *gin.Engine {
 		api.GET("/articles", controllers.GetArticles)
 		api.GET("/articles/popular", controllers.GetPopularArticles)
 		api.GET("/breaking-news", controllers.GetBreakingNews)
+		api.GET("/articles/:slug/related", controllers.GetRelatedArticles)
 		api.GET("/articles/:slug", controllers.GetArticleBySlug)
 
 		// Articles Auth / Admin / Author

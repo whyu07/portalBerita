@@ -69,6 +69,10 @@ type Article struct {
 	BreakingPriority int       `gorm:"default:0" json:"breaking_priority"`
 	Tags             []Tag     `gorm:"many2many:article_tags;" json:"tags,omitempty"`
 	Comments         []Comment `gorm:"foreignKey:ArticleID;constraint:OnDelete:CASCADE" json:"comments,omitempty"`
+	MetaTitle        string    `gorm:"size:100" json:"meta_title"`
+	MetaDescription  string    `gorm:"size:255" json:"meta_description"`
+	CanonicalURL     string    `gorm:"size:500" json:"canonical_url"`
+	OGImageURL       string    `gorm:"size:500" json:"og_image_url"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
 	PublishedAt      *time.Time `json:"published_at"`
@@ -112,14 +116,18 @@ type AuthResponse struct {
 }
 
 type CreateArticleRequest struct {
-	Title        string `json:"title" binding:"required"`
-	Summary      string `json:"summary"`
-	Content      string `json:"content" binding:"required"`
-	ThumbnailURL string `json:"thumbnail_url"`
-	CategoryID   uint   `json:"category_id" binding:"required"`
-	TagIDs       []uint `json:"tag_ids"`
-	Status       Status `json:"status"`
-	IsFeatured   bool   `json:"is_featured"`
+	Title           string `json:"title" binding:"required"`
+	Summary         string `json:"summary"`
+	Content         string `json:"content" binding:"required"`
+	ThumbnailURL    string `json:"thumbnail_url"`
+	CategoryID      uint   `json:"category_id" binding:"required"`
+	TagIDs          []uint `json:"tag_ids"`
+	Status          Status `json:"status"`
+	IsFeatured      bool   `json:"is_featured"`
+	MetaTitle       string `json:"meta_title"`
+	MetaDescription string `json:"meta_description"`
+	CanonicalURL    string `json:"canonical_url"`
+	OGImageURL      string `json:"og_image_url"`
 }
 
 type CreateCategoryRequest struct {

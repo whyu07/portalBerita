@@ -181,16 +181,33 @@ func CreateArticle(c *gin.Context) {
 		status = models.StatusPublished
 	}
 
+	// Sanitize HTML content
+	sanitizedContent := utils.SanitizeArticleContent(req.Content)
+
+	// Validate SEO field lengths
+	if len(req.MetaTitle) > 60 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Meta Title maksimal 60 karakter"})
+		return
+	}
+	if len(req.MetaDescription) > 160 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Meta Description maksimal 160 karakter"})
+		return
+	}
+
 	article := models.Article{
-		Title:        req.Title,
-		Slug:         slug,
-		Summary:      req.Summary,
-		Content:      req.Content,
-		ThumbnailURL: req.ThumbnailURL,
-		CategoryID:   req.CategoryID,
-		AuthorID:     authorID,
-		IsFeatured:   req.IsFeatured,
-		Tags:         tags,
+		Title:           req.Title,
+		Slug:            slug,
+		Summary:         req.Summary,
+		Content:         sanitizedContent,
+		ThumbnailURL:    req.ThumbnailURL,
+		CategoryID:      req.CategoryID,
+		AuthorID:        authorID,
+		IsFeatured:      req.IsFeatured,
+		Tags:            tags,
+		MetaTitle:       req.MetaTitle,
+		MetaDescription: req.MetaDescription,
+		CanonicalURL:    req.CanonicalURL,
+		OGImageURL:      req.OGImageURL,
 	}
 
 	utils.ApplyArticleStatus(&article, status)
@@ -245,12 +262,27 @@ func UpdateArticle(c *gin.Context) {
 		}
 	}
 
+	// Sanitize HTML content
 	article.Title = req.Title
 	article.Summary = req.Summary
-	article.Content = req.Content
+	article.Content = utils.SanitizeArticleContent(req.Content)
 	article.ThumbnailURL = req.ThumbnailURL
 	article.CategoryID = req.CategoryID
 	article.IsFeatured = req.IsFeatured
+	article.MetaTitle = req.MetaTitle
+	article.MetaDescription = req.MetaDescription
+	article.CanonicalURL = req.CanonicalURL
+	article.OGImageURL = req.OGImageURL
+
+	// Validate SEO field lengths
+	if len(req.MetaTitle) > 60 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Meta Title maksimal 60 karakter"})
+		return
+	}
+	if len(req.MetaDescription) > 160 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Meta Description maksimal 160 karakter"})
+		return
+	}
 
 	if req.Status == models.StatusDraft || req.Status == models.StatusPublished {
 		utils.ApplyArticleStatus(&article, req.Status)

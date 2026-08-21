@@ -76,9 +76,6 @@ export const Login = () => {
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-          Belum punya akun? <Link to="/register" style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Daftar Akun Baru</Link>
-        </div>
       </div>
     </main>
   );

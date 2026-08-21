@@ -2,44 +2,101 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Clock, Eye, User, MessageSquare, Send, Trash2, ArrowLeft } from 'lucide-react';
-import { PopularNews } from '../components/PopularNews';
+import { Clock, Eye, User, MessageSquare, Send, Trash2 } from 'lucide-react';
+import { ArticleContent } from '../components/ArticleContent';
+import { Breadcrumb } from '../components/Breadcrumb';
+import { ArticleCard } from '../components/ArticleCard';
 
 export const NewsDetail = () => {
   const { slug } = useParams();
   const { user } = useAuth();
   const [article, setArticle] = useState(null);
   const [comments, setComments] = useState([]);
-  const [popularArticles, setPopularArticles] = useState([]);
+  const [relatedArticles, setRelatedArticles] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
+  const [relatedLoading, setRelatedLoading] = useState(true);
   const [posting, setPosting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setRelatedLoading(true);
       try {
-        const [articleRes, popularRes] = await Promise.all([
-          api.get(`/articles/${slug}`),
-          api.get('/articles?limit=5') // Assuming limited /articles to simulate popular
-        ]);
-        
+        const articleRes = await api.get(`/articles/${slug}`);
         setArticle(articleRes.data);
         setComments(articleRes.data.comments || []);
-        
-        const sortedPopular = (popularRes.data?.data || [])
-          .sort((a, b) => (b.views_count || 0) - (a.views_count || 0))
-          .slice(0, 5);
-        setPopularArticles(sortedPopular);
       } catch (err) {
         console.error('Failed to load article detail:', err);
+        setArticle(null);
       } finally {
         setLoading(false);
+      }
+
+      // Fetch related articles separately so failure doesn't break the main article
+      try {
+        const relatedRes = await api.get(`/articles/${slug}/related?limit=5`);
+        const related = (relatedRes.data?.data || []).filter(a => a.slug !== slug);
+        setRelatedArticles(related);
+      } catch (err) {
+        console.error('Failed to load related articles:', err);
+        setRelatedArticles([]);
+      } finally {
+        setRelatedLoading(false);
       }
     };
 
     fetchData();
+    window.scrollTo({ top: 0 });
   }, [slug]);
+
+  // SEO: Update document head
+  useEffect(() => {
+    if (!article) return;
+
+    const siteURL = window.location.origin;
+    const metaTitle = article.meta_title || article.title;
+    const metaDesc = article.meta_description || article.summary || (article.content?.replace(/<[^>]*>/g, '').substring(0, 160));
+    const canonical = article.canonical_url || `${siteURL}/article/${article.slug}`;
+    const ogImage = article.og_image_url || article.thumbnail_url || '';
+
+    document.title = metaTitle;
+
+    const setOrCreateMeta = (attr, attrValue, content) => {
+      let el = document.querySelector(`meta[${attr}="${attrValue}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(attr, attrValue);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    };
+
+    setOrCreateMeta('name', 'description', metaDesc);
+
+    // Canonical
+    let canonicalEl = document.querySelector('link[rel="canonical"]');
+    if (!canonicalEl) {
+      canonicalEl = document.createElement('link');
+      canonicalEl.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonicalEl);
+    }
+    canonicalEl.setAttribute('href', canonical);
+
+    // Open Graph
+    setOrCreateMeta('property', 'og:title', metaTitle);
+    setOrCreateMeta('property', 'og:description', metaDesc);
+    setOrCreateMeta('property', 'og:url', canonical);
+    setOrCreateMeta('property', 'og:type', 'article');
+    if (ogImage) setOrCreateMeta('property', 'og:image', ogImage);
+    if (article.published_at) {
+      setOrCreateMeta('property', 'article:published_time', article.published_at);
+    }
+
+    return () => {
+      document.title = 'Portal Berita';
+    };
+  }, [article]);
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
@@ -84,15 +141,25 @@ export const NewsDetail = () => {
     );
   }
 
+  // Build breadcrumb items
+  const breadcrumbItems = [
+    { label: 'Beranda', to: '/' },
+  ];
+  if (article.category) {
+    breadcrumbItems.push({
+      label: article.category.name,
+      to: `/category/${article.category.slug}`,
+    });
+  }
+  breadcrumbItems.push({ label: article.title });
+
   return (
     <main className="main-content">
       <div className="two-column-layout">
         
-        {/* Kolom Kiri 70%: Artikel & Komentar */}
+        {/* Kolom Kiri: Artikel & Komentar */}
         <article>
-          <Link to="/" className="btn btn-outline btn-sm" style={{ marginBottom: '1.5rem', display: 'inline-flex' }}>
-            <ArrowLeft size={16} /> Kembali
-          </Link>
+          <Breadcrumb items={breadcrumbItems} />
 
           <div>
             {article.category && (
@@ -107,7 +174,7 @@ export const NewsDetail = () => {
                 <User size={16} /> Oleh {article.author?.name || 'Redaksi'}
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Clock size={16} /> {new Date(article.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                <Clock size={16} /> {new Date(article.published_at || article.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Eye size={16} /> {article.views_count || 0} Dilihat
@@ -121,9 +188,19 @@ export const NewsDetail = () => {
             </div>
           )}
 
-          <div style={{ fontSize: '1.15rem', lineHeight: '1.8', color: 'var(--text-primary)', whiteSpace: 'pre-line', marginBottom: '4rem' }}>
-            {article.content}
-          </div>
+          <ArticleContent content={article.content} />
+
+          {/* Related News Section */}
+          {!relatedLoading && relatedArticles.length > 0 && (
+            <section style={{ borderTop: '2px solid var(--border-color)', paddingTop: '2.5rem', marginTop: '3rem', marginBottom: '2rem' }}>
+              <h3 style={{ fontSize: '1.4rem', marginBottom: '1.5rem', fontWeight: 700 }}>Berita Terkait</h3>
+              <div className="news-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))' }}>
+                {relatedArticles.map((ra) => (
+                  <ArticleCard key={ra.id} article={ra} />
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Comment Section */}
           <section style={{ borderTop: '2px solid var(--border-color)', paddingTop: '2.5rem' }}>

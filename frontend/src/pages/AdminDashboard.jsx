@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { Newspaper, Folder, Plus, Edit, Trash2, X, Eye, EyeOff, FileText, CheckCircle, Users, Flame } from 'lucide-react';
 import { AccountManagement } from '../components/AccountManagement';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 export const AdminDashboard = () => {
   const { user } = useAuth();
@@ -28,6 +30,10 @@ export const AdminDashboard = () => {
     tag_ids: [],
     status: 'published',
     is_featured: false,
+    meta_title: '',
+    meta_description: '',
+    canonical_url: '',
+    og_image_url: '',
   });
 
   const [showTagModal, setShowTagModal] = useState(false);
@@ -81,6 +87,10 @@ export const AdminDashboard = () => {
         tag_ids: art.tags ? art.tags.map(t => t.id) : [],
         status: art.status,
         is_featured: art.is_featured,
+        meta_title: art.meta_title || '',
+        meta_description: art.meta_description || '',
+        canonical_url: art.canonical_url || '',
+        og_image_url: art.og_image_url || '',
       });
     } else {
       setEditingArticle(null);
@@ -93,6 +103,10 @@ export const AdminDashboard = () => {
         tag_ids: [],
         status: 'published',
         is_featured: false,
+        meta_title: '',
+        meta_description: '',
+        canonical_url: '',
+        og_image_url: '',
       });
     }
     setShowArticleModal(true);
@@ -620,13 +634,21 @@ export const AdminDashboard = () => {
 
               <div className="form-group">
                 <label>Konten Lengkap Berita</label>
-                <textarea
-                  className="form-control"
-                  rows="6"
+                <ReactQuill
+                  theme="snow"
                   value={articleForm.content}
-                  onChange={(e) => setArticleForm({ ...articleForm, content: e.target.value })}
-                  required
-                ></textarea>
+                  onChange={(value) => setArticleForm({ ...articleForm, content: value })}
+                  modules={{
+                    toolbar: [
+                      [{ 'header': [2, 3, 4, false] }],
+                      ['bold', 'italic', 'underline', 'strike'],
+                      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                      ['blockquote', 'link', 'image', 'video'],
+                      ['clean']
+                    ]
+                  }}
+                  style={{ minHeight: '200px', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+                />
               </div>
 
               <div className="form-group">
@@ -652,6 +674,55 @@ export const AdminDashboard = () => {
                   Jadikan Berita Utama (Featured Hero)
                 </label>
               </div>
+
+              {/* SEO Metadata Fields */}
+              <details style={{ marginBottom: '1.5rem', background: 'var(--bg-secondary)', padding: '1rem', borderRadius: 'var(--radius-sm)', border: 'var(--glass-border)' }}>
+                <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>Metadata SEO (Opsional)</summary>
+                <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label>Meta Title <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>({articleForm.meta_title.length}/60)</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      maxLength={60}
+                      placeholder="Judul untuk mesin pencari"
+                      value={articleForm.meta_title}
+                      onChange={(e) => setArticleForm({ ...articleForm, meta_title: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label>Meta Description <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>({articleForm.meta_description.length}/160)</span></label>
+                    <textarea
+                      className="form-control"
+                      rows="2"
+                      maxLength={160}
+                      placeholder="Deskripsi singkat untuk mesin pencari"
+                      value={articleForm.meta_description}
+                      onChange={(e) => setArticleForm({ ...articleForm, meta_description: e.target.value })}
+                    ></textarea>
+                  </div>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label>Canonical URL</label>
+                    <input
+                      type="url"
+                      className="form-control"
+                      placeholder="https://contoh.com/article/judul-artikel"
+                      value={articleForm.canonical_url}
+                      onChange={(e) => setArticleForm({ ...articleForm, canonical_url: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label>OG Image URL</label>
+                    <input
+                      type="url"
+                      className="form-control"
+                      placeholder="https://contoh.com/images/og.jpg"
+                      value={articleForm.og_image_url}
+                      onChange={(e) => setArticleForm({ ...articleForm, og_image_url: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </details>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
                 <button type="button" onClick={() => setShowArticleModal(false)} className="btn btn-outline">
