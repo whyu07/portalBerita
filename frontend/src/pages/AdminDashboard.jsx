@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-import { Newspaper, Folder, Plus, Edit, Trash2, X, Eye, EyeOff, FileText, CheckCircle, Users } from 'lucide-react';
+import { Newspaper, Folder, Plus, Edit, Trash2, X, Eye, EyeOff, FileText, CheckCircle, Users, Flame } from 'lucide-react';
 import { AccountManagement } from '../components/AccountManagement';
 
 export const AdminDashboard = () => {
@@ -12,6 +12,8 @@ export const AdminDashboard = () => {
 
   const [articles, setArticles] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [tags, setTags] = useState([]);
+  const [popularArticles, setPopularArticles] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Modal states
@@ -23,9 +25,14 @@ export const AdminDashboard = () => {
     content: '',
     thumbnail_url: '',
     category_id: '',
+    tag_ids: [],
     status: 'published',
     is_featured: false,
   });
+
+  const [showTagModal, setShowTagModal] = useState(false);
+  const [editingTag, setEditingTag] = useState(null);
+  const [tagForm, setTagForm] = useState({ name: '' });
 
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
@@ -40,12 +47,16 @@ export const AdminDashboard = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [artRes, catRes] = await Promise.all([
+      const [artRes, catRes, tagRes, popRes] = await Promise.all([
         api.get('/admin/articles?status=all&limit=100'),
         api.get('/categories'),
+        api.get('/tags'),
+        user?.role === 'admin' ? api.get('/admin/articles/popular?period=30d&limit=20') : Promise.resolve({ data: { data: [] } }),
       ]);
       setArticles(artRes.data?.data || []);
       setCategories(catRes.data || []);
+      setTags(tagRes.data || []);
+      setPopularArticles(popRes.data?.data || []);
     } catch (err) {
       console.error('Failed to load admin data:', err);
     } finally {
@@ -67,6 +78,7 @@ export const AdminDashboard = () => {
         content: art.content,
         thumbnail_url: art.thumbnail_url || '',
         category_id: art.category_id,
+        tag_ids: art.tags ? art.tags.map(t => t.id) : [],
         status: art.status,
         is_featured: art.is_featured,
       });
@@ -78,6 +90,7 @@ export const AdminDashboard = () => {
         content: '',
         thumbnail_url: '',
         category_id: categories[0]?.id || '',
+        tag_ids: [],
         status: 'published',
         is_featured: false,
       });
@@ -128,6 +141,30 @@ export const AdminDashboard = () => {
     }
   };
 
+  const handleToggleBreaking = async (art) => {
+    if (user?.role !== 'admin') return;
+    const isBreaking = !art.is_breaking;
+    let priority = 0;
+    if (isBreaking) {
+      const input = prompt("Masukkan nilai prioritas Breaking News (angka lebih besar = lebih prioritas):", "10");
+      if (input === null) return;
+      priority = parseInt(input, 10);
+      if (isNaN(priority) || priority < 0) {
+        alert("Prioritas harus berupa angka positif.");
+        return;
+      }
+    } else {
+      if (!confirm('Berhentikan status Breaking News?')) return;
+    }
+
+    try {
+      await api.patch(`/admin/articles/${art.id}/breaking`, { is_breaking: isBreaking, priority: priority });
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Gagal mengubah status breaking');
+    }
+  };
+
   // Category Actions
   const handleOpenCategoryModal = (cat = null) => {
     if (cat) {
@@ -165,6 +202,43 @@ export const AdminDashboard = () => {
     }
   };
 
+  // Tag Actions
+  const handleOpenTagModal = (tag = null) => {
+    if (tag) {
+      setEditingTag(tag);
+      setTagForm({ name: tag.name });
+    } else {
+      setEditingTag(null);
+      setTagForm({ name: '' });
+    }
+    setShowTagModal(true);
+  };
+
+  const handleSaveTag = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingTag) {
+        await api.put(`/admin/tags/${editingTag.id}`, tagForm);
+      } else {
+        await api.post('/admin/tags', tagForm);
+      }
+      setShowTagModal(false);
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Gagal menyimpan tag');
+    }
+  };
+
+  const handleDeleteTag = async (id) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus tag ini?')) return;
+    try {
+      await api.delete(`/admin/tags/${id}`);
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Gagal menghapus tag');
+    }
+  };
+
   return (
     <main className="main-content">
       {/* Header */}
@@ -180,9 +254,14 @@ export const AdminDashboard = () => {
             <Plus size={16} /> Buat Artikel
           </button>
           {user?.role === 'admin' && (
-            <button onClick={() => handleOpenCategoryModal()} className="btn btn-outline" id="btn-admin-add-category">
-              <Plus size={16} /> Tambah Kategori
-            </button>
+            <>
+              <button onClick={() => handleOpenCategoryModal()} className="btn btn-outline" id="btn-admin-add-category">
+                <Plus size={16} /> Tambah Kategori
+              </button>
+              <button onClick={() => handleOpenTagModal()} className="btn btn-outline" id="btn-admin-add-tag">
+                <Plus size={16} /> Tambah Tag
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -241,20 +320,48 @@ export const AdminDashboard = () => {
           Kategori Berita ({categories.length})
         </button>
         {user?.role === 'admin' && (
-          <button
-            onClick={() => setActiveTab('accounts')}
-            style={{
-              padding: '0.75rem 1.25rem',
-              background: 'transparent',
-              color: activeTab === 'accounts' ? 'var(--accent-primary)' : 'var(--text-secondary)',
-              borderBottom: activeTab === 'accounts' ? '2px solid var(--accent-primary)' : 'none',
-              fontWeight: 700,
-              fontSize: '1rem',
-            }}
-            id="tab-accounts"
-          >
-            Pengaturan Akun
-          </button>
+          <>
+            <button
+              onClick={() => setActiveTab('tags')}
+              style={{
+                padding: '0.75rem 1.25rem',
+                background: 'transparent',
+                color: activeTab === 'tags' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                borderBottom: activeTab === 'tags' ? '2px solid var(--accent-primary)' : 'none',
+                fontWeight: 700,
+                fontSize: '1rem',
+              }}
+            >
+              Master Tag ({tags.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('popular')}
+              style={{
+                padding: '0.75rem 1.25rem',
+                background: 'transparent',
+                color: activeTab === 'popular' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                borderBottom: activeTab === 'popular' ? '2px solid var(--accent-primary)' : 'none',
+                fontWeight: 700,
+                fontSize: '1rem',
+              }}
+            >
+              Popular News
+            </button>
+            <button
+              onClick={() => setActiveTab('accounts')}
+              style={{
+                padding: '0.75rem 1.25rem',
+                background: 'transparent',
+                color: activeTab === 'accounts' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                borderBottom: activeTab === 'accounts' ? '2px solid var(--accent-primary)' : 'none',
+                fontWeight: 700,
+                fontSize: '1rem',
+              }}
+              id="tab-accounts"
+            >
+              Pengaturan Akun
+            </button>
+          </>
         )}
       </div>
 
@@ -278,6 +385,7 @@ export const AdminDashboard = () => {
                   <td>
                     <strong>{art.title}</strong>
                     {art.is_featured && <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', background: 'var(--accent-warning)', color: '#000', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>UTAMA</span>}
+                    {art.is_breaking && <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', background: 'var(--accent-danger)', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>BREAKING ({art.breaking_priority})</span>}
                   </td>
                   <td>{art.category?.name || '-'}</td>
                   <td>{art.author?.name || '-'}</td>
@@ -296,6 +404,11 @@ export const AdminDashboard = () => {
                       ) : (
                         <button onClick={() => handleToggleArticleStatus(art)} className="btn btn-outline btn-sm" style={{ color: '#10b981', borderColor: '#10b981' }} title="Terbitkan / Publish">
                           <Eye size={14} />
+                        </button>
+                      )}
+                      {user?.role === 'admin' && (
+                        <button onClick={() => handleToggleBreaking(art)} className="btn btn-outline btn-sm" style={{ color: art.is_breaking ? 'var(--accent-danger)' : 'var(--text-secondary)', borderColor: art.is_breaking ? 'var(--accent-danger)' : 'var(--border-color)' }} title="Toggle Breaking News">
+                          <Flame size={14} />
                         </button>
                       )}
                       <button onClick={() => handleOpenArticleModal(art)} className="btn btn-outline btn-sm" title="Edit Artikel">
@@ -348,6 +461,74 @@ export const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Tags Table */}
+      {activeTab === 'tags' && user?.role === 'admin' && (
+        <div className="admin-table-wrapper">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Nama Tag</th>
+                <th>Slug</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tags.map((tag) => (
+                <tr key={tag.id}>
+                  <td><strong>#{tag.name}</strong></td>
+                  <td><code>{tag.slug}</code></td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button onClick={() => handleOpenTagModal(tag)} className="btn btn-outline btn-sm" title="Edit Tag">
+                        <Edit size={14} />
+                      </button>
+                      <button onClick={() => handleDeleteTag(tag.id)} className="btn btn-outline btn-sm" style={{ color: 'var(--accent-danger)' }} title="Hapus Tag">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Popular News Table */}
+      {activeTab === 'popular' && user?.role === 'admin' && (
+        <div className="admin-table-wrapper">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Peringkat</th>
+                <th>Judul Artikel</th>
+                <th>Kategori</th>
+                <th>Penulis</th>
+                <th>Views (30 Hari)</th>
+                <th>Total Views</th>
+              </tr>
+            </thead>
+            <tbody>
+              {popularArticles.map((art, idx) => (
+                <tr key={art.id}>
+                  <td><strong>#{idx + 1}</strong></td>
+                  <td><strong>{art.title}</strong></td>
+                  <td>{art.category?.name || '-'}</td>
+                  <td>{art.author?.name || '-'}</td>
+                  <td><strong style={{ color: 'var(--accent-primary)' }}>{art.period_views}</strong></td>
+                  <td>{art.views_count}</td>
+                </tr>
+              ))}
+              {popularArticles.length === 0 && (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center' }}>Belum ada data popular news dalam 30 hari terakhir.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {/* Account Management Tab */}
       {activeTab === 'accounts' && user?.role === 'admin' && (
         <AccountManagement />
@@ -388,6 +569,32 @@ export const AdminDashboard = () => {
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label>Tag Berita</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', padding: '0.5rem', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}>
+                  {tags.map((tag) => (
+                    <label key={tag.id} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={articleForm.tag_ids.includes(tag.id)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setArticleForm(prev => {
+                            if (checked) {
+                              return { ...prev, tag_ids: [...prev.tag_ids, tag.id] };
+                            } else {
+                              return { ...prev, tag_ids: prev.tag_ids.filter(id => id !== tag.id) };
+                            }
+                          });
+                        }}
+                      />
+                      #{tag.name}
+                    </label>
+                  ))}
+                  {tags.length === 0 && <span style={{ color: 'var(--text-muted)' }}>Belum ada master tag tersedia.</span>}
+                </div>
               </div>
 
               <div className="form-group">
@@ -497,6 +704,40 @@ export const AdminDashboard = () => {
                 </button>
                 <button type="submit" className="btn btn-primary" id="btn-save-category-modal">
                   Simpan Kategori
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Modal Tag Form */}
+      {showTagModal && (
+        <div className="modal-backdrop">
+          <div className="modal-card" style={{ maxWidth: '450px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2>{editingTag ? 'Edit Tag' : 'Tag Baru'}</h2>
+              <button onClick={() => setShowTagModal(false)} style={{ background: 'transparent', color: 'var(--text-secondary)' }}>
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveTag}>
+              <div className="form-group">
+                <label>Nama Tag</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={tagForm.name}
+                  onChange={(e) => setTagForm({ ...tagForm, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button type="button" onClick={() => setShowTagModal(false)} className="btn btn-outline">
+                  Batal
+                </button>
+                <button type="submit" className="btn btn-primary" id="btn-save-tag-modal">
+                  Simpan Tag
                 </button>
               </div>
             </form>

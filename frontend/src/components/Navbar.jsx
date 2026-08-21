@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Newspaper, Search, User, LogOut, Sun, Moon, LayoutDashboard } from 'lucide-react';
+import logo from '../../../image.png';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -44,10 +45,7 @@ export const Navbar = () => {
     <header className="navbar-sticky">
       <div className="navbar-inner">
         <Link to="/" className="logo-brand">
-          <div className="logo-icon">
-            <Newspaper size={20} />
-          </div>
-          <span>PORTAL BERITA</span>
+          <img src={logo} alt="Portal Berita Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
         </Link>
 
         <form onSubmit={handleSearchSubmit} className="search-box">

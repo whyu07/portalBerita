@@ -19,11 +19,26 @@ export const ArticleCard = ({ article }) => {
         />
       </Link>
       <div className="card-body">
-        {article.category && (
-          <Link to={`/category/${article.category.slug}`} className="badge-category">
-            {article.category.name}
-          </Link>
-        )}
+        <div className="flex items-center space-x-2 mb-3">
+          {article.category && (
+            <Link 
+              to={`/category/${article.category.slug}`}
+              className="badge-category"
+            >
+              {article.category.name}
+            </Link>
+          )}
+          
+          {article.tags && article.tags.slice(0, 2).map(tag => (
+            <Link 
+              key={tag.id}
+              to={`/tag/${tag.slug}`}
+              className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-gray-200 transition-colors duration-200 truncate max-w-[80px]"
+            >
+              #{tag.name}
+            </Link>
+          ))}
+        </div>
         <h3 className="card-title">
           <Link to={`/article/${article.slug}`}>{article.title}</Link>
         </h3>

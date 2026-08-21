@@ -41,25 +41,45 @@ type Category struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+// Tag Model
+type Tag struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	Name      string    `gorm:"size:100;not null" json:"name"`
+	Slug      string    `gorm:"size:100;uniqueIndex;not null" json:"slug"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 // Article Model
 type Article struct {
-	ID           uint      `gorm:"primaryKey" json:"id"`
-	Title        string    `gorm:"size:255;not null" json:"title"`
-	Slug         string    `gorm:"size:255;uniqueIndex;not null" json:"slug"`
-	Summary      string    `gorm:"type:text" json:"summary"`
-	Content      string    `gorm:"type:text;not null" json:"content"`
-	ThumbnailURL string    `gorm:"size:500" json:"thumbnail_url"`
-	CategoryID   uint      `gorm:"not null" json:"category_id"`
-	Category     Category  `gorm:"foreignKey:CategoryID" json:"category"`
-	AuthorID     uint      `gorm:"not null" json:"author_id"`
-	Author       User      `gorm:"foreignKey:AuthorID" json:"author"`
-	Status       Status    `gorm:"type:varchar(20);default:'published'" json:"status"`
-	ViewsCount   int       `gorm:"default:0" json:"views_count"`
-	IsFeatured   bool      `gorm:"default:false" json:"is_featured"`
-	Comments     []Comment `gorm:"foreignKey:ArticleID;constraint:OnDelete:CASCADE" json:"comments,omitempty"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	PublishedAt  *time.Time `json:"published_at"`
+	ID               uint      `gorm:"primaryKey" json:"id"`
+	Title            string    `gorm:"size:255;not null" json:"title"`
+	Slug             string    `gorm:"size:255;uniqueIndex;not null" json:"slug"`
+	Summary          string    `gorm:"type:text" json:"summary"`
+	Content          string    `gorm:"type:text;not null" json:"content"`
+	ThumbnailURL     string    `gorm:"size:500" json:"thumbnail_url"`
+	CategoryID       uint      `gorm:"not null" json:"category_id"`
+	Category         Category  `gorm:"foreignKey:CategoryID" json:"category"`
+	AuthorID         uint      `gorm:"not null" json:"author_id"`
+	Author           User      `gorm:"foreignKey:AuthorID" json:"author"`
+	Status           Status    `gorm:"type:varchar(20);default:'published'" json:"status"`
+	ViewsCount       int       `gorm:"default:0" json:"views_count"`
+	IsFeatured       bool      `gorm:"default:false" json:"is_featured"`
+	IsBreaking       bool      `gorm:"default:false" json:"is_breaking"`
+	BreakingPriority int       `gorm:"default:0" json:"breaking_priority"`
+	Tags             []Tag     `gorm:"many2many:article_tags;" json:"tags,omitempty"`
+	Comments         []Comment `gorm:"foreignKey:ArticleID;constraint:OnDelete:CASCADE" json:"comments,omitempty"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+	PublishedAt      *time.Time `json:"published_at"`
+}
+
+// ArticleView Model
+type ArticleView struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	ArticleID uint      `gorm:"not null;index" json:"article_id"`
+	Article   Article   `gorm:"foreignKey:ArticleID" json:"-"`
+	ViewedAt  time.Time `gorm:"index" json:"viewed_at"`
 }
 
 // Comment Model
@@ -97,6 +117,7 @@ type CreateArticleRequest struct {
 	Content      string `json:"content" binding:"required"`
 	ThumbnailURL string `json:"thumbnail_url"`
 	CategoryID   uint   `json:"category_id" binding:"required"`
+	TagIDs       []uint `json:"tag_ids"`
 	Status       Status `json:"status"`
 	IsFeatured   bool   `json:"is_featured"`
 }
@@ -133,4 +154,13 @@ type ManagedUsersResponse struct {
 
 type UpdateArticleStatusRequest struct {
 	Status Status `json:"status" binding:"required"`
+}
+
+type CreateTagRequest struct {
+	Name string `json:"name" binding:"required"`
+}
+
+type UpdateBreakingNewsRequest struct {
+	IsBreaking bool `json:"is_breaking"`
+	Priority   int  `json:"priority"`
 }

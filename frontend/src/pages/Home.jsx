@@ -42,8 +42,6 @@ export const Home = () => {
   // Derived data
   const featured = allArticles.find((a) => a.is_featured) || allArticles[0];
   const latestArticles = allArticles.filter(a => a.id !== featured?.id).slice(0, 4);
-  const popularArticles = [...allArticles].sort((a, b) => (b.views_count || 0) - (a.views_count || 0)).slice(0, 5);
-  const breakingArticles = allArticles.slice(0, 5);
   const moreLatestArticles = allArticles.slice(4, 9); // For the LatestNews section if we want separate from Hero sidebar
 
   if (loading) {
@@ -81,7 +79,7 @@ export const Home = () => {
 
   return (
     <>
-      <BreakingTicker articles={breakingArticles} />
+      <BreakingTicker />
       
       <main className="main-content">
         {/* 1. Hero Section (65/35) - Kiri Featured, Kanan Latest */}
@@ -91,6 +89,9 @@ export const Home = () => {
         <div className="two-column-layout">
           <div>
             <LatestNews articles={moreLatestArticles} />
+          </div>
+          <div>
+            <PopularNews period="7d" />
           </div>
         </div>
 

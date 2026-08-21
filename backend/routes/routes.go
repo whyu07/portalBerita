@@ -31,6 +31,10 @@ func SetupRouter() *gin.Engine {
 		// Categories Public
 		api.GET("/categories", controllers.GetCategories)
 
+		// Tags Public
+		api.GET("/tags", controllers.GetTags)
+		api.GET("/tags/:slug/articles", controllers.GetArticlesByTag)
+
 		// Categories Admin
 		categoriesAdmin := api.Group("/categories")
 		categoriesAdmin.Use(middlewares.JWTAuthMiddleware(), middlewares.RequireRole(models.RoleAdmin))
@@ -40,8 +44,19 @@ func SetupRouter() *gin.Engine {
 			categoriesAdmin.DELETE("/:id", controllers.DeleteCategory)
 		}
 
+		// Tags Admin
+		tagsAdmin := api.Group("/admin/tags")
+		tagsAdmin.Use(middlewares.JWTAuthMiddleware(), middlewares.RequireRole(models.RoleAdmin))
+		{
+			tagsAdmin.POST("", controllers.CreateTag)
+			tagsAdmin.PUT("/:id", controllers.UpdateTag)
+			tagsAdmin.DELETE("/:id", controllers.DeleteTag)
+		}
+
 		// Articles Public
 		api.GET("/articles", controllers.GetArticles)
+		api.GET("/articles/popular", controllers.GetPopularArticles)
+		api.GET("/breaking-news", controllers.GetBreakingNews)
 		api.GET("/articles/:slug", controllers.GetArticleBySlug)
 
 		// Articles Auth / Admin / Author
@@ -59,6 +74,16 @@ func SetupRouter() *gin.Engine {
 		{
 			managedArticles.GET("", controllers.GetManagedArticles)
 			managedArticles.PATCH("/:id/status", controllers.UpdateArticleStatus)
+		}
+
+		// Breaking News Admin
+		breakingAdmin := api.Group("/admin/articles")
+		breakingAdmin.Use(middlewares.JWTAuthMiddleware(), middlewares.RequireRole(models.RoleAdmin))
+		{
+			breakingAdmin.PATCH("/:id/breaking", controllers.ToggleBreakingNews)
+			// Admin can also view popular articles internally if needed, but GetPopularArticles can just be public. 
+			// If we want a separate admin route we can add it here.
+			breakingAdmin.GET("/popular", controllers.GetPopularArticles)
 		}
 
 		// Comments Routes

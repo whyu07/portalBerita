@@ -1,8 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Flame } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import api from '../services/api';
 
-export const BreakingTicker = ({ articles = [] }) => {
-  if (!articles || articles.length === 0) return null;
+export const BreakingTicker = () => {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBreaking = async () => {
+      try {
+        const res = await api.get('/breaking-news');
+        setArticles(res.data || []);
+      } catch (err) {
+        console.error("Gagal memuat breaking news:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBreaking();
+  }, []);
+
+  if (loading || articles.length === 0) return null;
 
   return (
     <div className="ticker-bar">
@@ -12,9 +31,11 @@ export const BreakingTicker = ({ articles = [] }) => {
           BREAKING NEWS
         </span>
         <marquee scrollamount="5" style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-          {articles.map((art, idx) => (
+          {articles.map((art) => (
             <span key={art.id} style={{ marginRight: '3rem' }}>
-              📌 {art.title} ({art.category?.name || 'Berita'})
+              <Link to={`/article/${art.slug}`} style={{ color: 'inherit', textDecoration: 'none' }} className="hover:text-accent-primary">
+                📌 {art.title} ({art.category?.name || 'Berita'})
+              </Link>
             </span>
           ))}
         </marquee>

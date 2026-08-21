@@ -56,7 +56,9 @@ func InitDB() *gorm.DB {
 	err = database.AutoMigrate(
 		&models.User{},
 		&models.Category{},
+		&models.Tag{},
 		&models.Article{},
+		&models.ArticleView{},
 		&models.Comment{},
 	)
 	if err != nil {
@@ -118,6 +120,17 @@ func SeedData(db *gorm.DB) {
 		db.Create(&categories[i])
 	}
 
+	// Seed Tags
+	tags := []models.Tag{
+		{Name: "Satelit", Slug: "satelit"},
+		{Name: "Internet", Slug: "internet"},
+		{Name: "Pertumbuhan", Slug: "pertumbuhan"},
+		{Name: "Timnas", Slug: "timnas"},
+	}
+	for i := range tags {
+		db.Create(&tags[i])
+	}
+
 	// Seed Sample Articles
 	now1 := time.Now().Add(-2 * time.Hour)
 	now2 := time.Now().Add(-5 * time.Hour)
@@ -135,8 +148,11 @@ func SeedData(db *gorm.DB) {
 			Status:       models.StatusPublished,
 			ViewsCount:   342,
 			IsFeatured:   true,
+			IsBreaking:   true,
+			BreakingPriority: 10,
 			CreatedAt:    now1,
 			PublishedAt:  &now1,
+			Tags:         []models.Tag{tags[0], tags[1]},
 		},
 		{
 			Title:        "Perekonomian Nasional Catat Pertumbuhan 5,2% di Kuartal Ini",
@@ -151,6 +167,7 @@ func SeedData(db *gorm.DB) {
 			IsFeatured:   false,
 			CreatedAt:    now2,
 			PublishedAt:  &now2,
+			Tags:         []models.Tag{tags[2]},
 		},
 		{
 			Title:        "Timnas Indonesia Siap Hadapi Turnamen Tingkat Asia",

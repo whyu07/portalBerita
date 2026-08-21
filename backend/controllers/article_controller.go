@@ -6,6 +6,7 @@ import (
 	"portal-berita-backend/models"
 	"portal-berita-backend/utils"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -72,13 +73,20 @@ func GetArticleBySlug(c *gin.Context) {
 	slug := c.Param("slug")
 	var article models.Article
 
-	if err := config.DB.Preload("Category").Preload("Author").Preload("Comments.User").Where("slug = ?", slug).Where("status = ?", models.StatusPublished).First(&article).Error; err != nil {
+	if err := config.DB.Preload("Category").Preload("Author").Preload("Tags").Preload("Comments.User").Where("slug = ?", slug).Where("status = ?", models.StatusPublished).First(&article).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Artikel tidak ditemukan"})
 		return
 	}
 
 	// Increment view count
 	config.DB.Model(&article).UpdateColumn("views_count", gorm.Expr("views_count + ?", 1))
+	
+	// Create ArticleView record for popular tracking
+	view := models.ArticleView{
+		ArticleID: article.ID,
+		ViewedAt:  time.Now(),
+	}
+	config.DB.Create(&view)
 
 	c.JSON(http.StatusOK, article)
 }
@@ -96,6 +104,16 @@ func CreateArticle(c *gin.Context) {
 	if categoryCount == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Kategori tidak ditemukan atau tidak valid"})
 		return
+	}
+
+	// Validate Tags
+	var tags []models.Tag
+	if len(req.TagIDs) > 0 {
+		config.DB.Where("id IN ?", req.TagIDs).Find(&tags)
+		if len(tags) != len(req.TagIDs) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Beberapa tag tidak ditemukan atau tidak valid"})
+			return
+		}
 	}
 
 	userIDVal, _ := c.Get("userID")
@@ -121,6 +139,7 @@ func CreateArticle(c *gin.Context) {
 		CategoryID:   req.CategoryID,
 		AuthorID:     authorID,
 		IsFeatured:   req.IsFeatured,
+		Tags:         tags,
 	}
 
 	utils.ApplyArticleStatus(&article, status)
@@ -130,7 +149,7 @@ func CreateArticle(c *gin.Context) {
 		return
 	}
 
-	config.DB.Preload("Category").Preload("Author").First(&article, article.ID)
+	config.DB.Preload("Category").Preload("Author").Preload("Tags").First(&article, article.ID)
 	c.JSON(http.StatusCreated, article)
 }
 
@@ -165,6 +184,16 @@ func UpdateArticle(c *gin.Context) {
 		return
 	}
 
+	// Validate Tags
+	var tags []models.Tag
+	if len(req.TagIDs) > 0 {
+		config.DB.Where("id IN ?", req.TagIDs).Find(&tags)
+		if len(tags) != len(req.TagIDs) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Beberapa tag tidak ditemukan atau tidak valid"})
+			return
+		}
+	}
+
 	article.Title = req.Title
 	article.Summary = req.Summary
 	article.Content = req.Content
@@ -181,7 +210,13 @@ func UpdateArticle(c *gin.Context) {
 		return
 	}
 
-	config.DB.Preload("Category").Preload("Author").First(&article, article.ID)
+	// Replace tags relationship
+	if err := config.DB.Model(&article).Association("Tags").Replace(tags); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui tag artikel"})
+		return
+	}
+
+	config.DB.Preload("Category").Preload("Author").Preload("Tags").First(&article, article.ID)
 	c.JSON(http.StatusOK, article)
 }
 
@@ -296,11 +331,136 @@ func UpdateArticleStatus(c *gin.Context) {
 
 	utils.ApplyArticleStatus(&article, req.Status)
 
-	if err := config.DB.Save(&article).Error; err != nil {
+	if err := config.DB.Model(&article).Update("status", req.Status).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengubah status artikel"})
 		return
 	}
 
-	config.DB.Preload("Category").Preload("Author").First(&article, article.ID)
+	config.DB.Preload("Category").Preload("Author").Preload("Tags").First(&article, article.ID)
+	c.JSON(http.StatusOK, article)
+}
+
+// GetPopularArticles returns popular articles based on views in a specific period
+func GetPopularArticles(c *gin.Context) {
+	period := c.DefaultQuery("period", "7d")
+	limitStr := c.DefaultQuery("limit", "5")
+	limit, _ := strconv.Atoi(limitStr)
+
+	var since time.Time
+	now := time.Now()
+	switch period {
+	case "24h":
+		since = now.Add(-24 * time.Hour)
+	case "7d":
+		since = now.Add(-7 * 24 * time.Hour)
+	case "30d":
+		since = now.Add(-30 * 24 * time.Hour)
+	default:
+		// Default to 7d
+		since = now.Add(-7 * 24 * time.Hour)
+		period = "7d"
+	}
+
+	// Raw SQL to get popular articles
+	var results []struct {
+		models.Article
+		PeriodViews int `json:"period_views"`
+	}
+
+	query := `
+		SELECT a.*, COUNT(v.id) as period_views 
+		FROM articles a
+		JOIN article_views v ON v.article_id = a.id
+		WHERE a.status = ? AND v.viewed_at >= ?
+		GROUP BY a.id
+		ORDER BY period_views DESC, a.published_at DESC
+		LIMIT ?
+	`
+	if err := config.DB.Raw(query, models.StatusPublished, since, limit).Scan(&results).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data berita populer"})
+		return
+	}
+
+	// Preload associations manually since Raw won't do it automatically in GORM easily
+	var articleIDs []uint
+	for _, r := range results {
+		articleIDs = append(articleIDs, r.ID)
+	}
+
+	var articlesWithAssoc []models.Article
+	if len(articleIDs) > 0 {
+		config.DB.Preload("Category").Preload("Author").Where("id IN ?", articleIDs).Find(&articlesWithAssoc)
+	}
+
+	// Map them back to the results
+	for i, result := range results {
+		for _, a := range articlesWithAssoc {
+			if result.ID == a.ID {
+				results[i].Category = a.Category
+				results[i].Author = a.Author
+				break
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"period": period,
+		"data":   results,
+	})
+}
+
+// GetBreakingNews returns active breaking news
+func GetBreakingNews(c *gin.Context) {
+	limitStr := c.DefaultQuery("limit", "5")
+	limit, _ := strconv.Atoi(limitStr)
+
+	var articles []models.Article
+	if err := config.DB.Model(&models.Article{}).
+		Preload("Category").
+		Where("status = ?", models.StatusPublished).
+		Where("is_breaking = ?", true).
+		Order("breaking_priority DESC, published_at DESC").
+		Limit(limit).Find(&articles).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data breaking news"})
+		return
+	}
+
+	c.JSON(http.StatusOK, articles)
+}
+
+// ToggleBreakingNews allows admin to toggle breaking status and priority
+func ToggleBreakingNews(c *gin.Context) {
+	id := c.Param("id")
+	var article models.Article
+
+	if err := config.DB.First(&article, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Artikel tidak ditemukan"})
+		return
+	}
+
+	var req models.UpdateBreakingNewsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if req.Priority < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Prioritas tidak boleh negatif"})
+		return
+	}
+
+	if req.IsBreaking {
+		article.IsBreaking = true
+		article.BreakingPriority = req.Priority
+	} else {
+		article.IsBreaking = false
+		article.BreakingPriority = 0
+	}
+
+	if err := config.DB.Save(&article).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengubah status breaking news"})
+		return
+	}
+
 	c.JSON(http.StatusOK, article)
 }

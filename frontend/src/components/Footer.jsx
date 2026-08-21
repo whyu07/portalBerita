@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Newspaper } from 'lucide-react';
+import { Newspaper, Flame, Zap, ArrowRight, Github, Twitter, Linkedin } from 'lucide-react';
+import logo from '../../../image.png';
 import api from '../services/api';
 
 export const Footer = () => {
@@ -23,10 +24,7 @@ export const Footer = () => {
       <div className="footer-inner">
         <div>
           <div className="logo-brand" style={{ marginBottom: '1rem' }}>
-            <div className="logo-icon">
-              <Newspaper size={20} />
-            </div>
-            <span>PORTAL BERITA</span>
+            <img src={logo} alt="Portal Berita Logo" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: '320px' }}>
             Menyajikan berita terkini, akurat, dan terpercaya seputar teknologi, politik, ekonomi, dan olahraga di Indonesia maupun internasional.
