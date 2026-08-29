@@ -5,6 +5,11 @@ import api from '../services/api';
 import { Newspaper, Folder, Plus, Edit, Trash2, X, Eye, EyeOff, FileText, CheckCircle, Users, Flame } from 'lucide-react';
 import { AccountManagement } from '../components/AccountManagement';
 import { DashboardSidebar } from '../components/dashboard/DashboardSidebar';
+import { DataTable } from '../components/dashboard/DataTable';
+import { ModalForm } from '../components/dashboard/ModalForm';
+import { StatusBadge } from '../components/dashboard/StatusBadge';
+import { Button } from '../components/common/Button';
+import { FormField } from '../components/common/FormField';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -267,17 +272,17 @@ export const AdminDashboard = () => {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button onClick={() => handleOpenArticleModal()} className="btn btn-primary" id="btn-admin-add-article">
-            <Plus size={16} /> Buat Artikel
-          </button>
+          <Button onClick={() => handleOpenArticleModal()} variant="primary" id="btn-admin-add-article" icon={<Plus size={16} />}>
+            Buat Artikel
+          </Button>
           {user?.role === 'admin' && (
             <>
-              <button onClick={() => handleOpenCategoryModal()} className="btn btn-outline" id="btn-admin-add-category">
-                <Plus size={16} /> Tambah Kategori
-              </button>
-              <button onClick={() => handleOpenTagModal()} className="btn btn-outline" id="btn-admin-add-tag">
-                <Plus size={16} /> Tambah Tag
-              </button>
+              <Button onClick={() => handleOpenCategoryModal()} variant="outline" id="btn-admin-add-category" icon={<Plus size={16} />}>
+                Tambah Kategori
+              </Button>
+              <Button onClick={() => handleOpenTagModal()} variant="outline" id="btn-admin-add-tag" icon={<Plus size={16} />}>
+                Tambah Tag
+              </Button>
             </>
           )}
         </div>
@@ -309,166 +314,120 @@ export const AdminDashboard = () => {
 
       {/* Articles Table */}
       {activeTab === 'articles' && (
-        <div className="admin-table-wrapper">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Judul Artikel</th>
-                <th>Kategori</th>
-                <th>Penulis</th>
-                <th>Status</th>
-                <th>Views</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {articles.map((art) => (
-                <tr key={art.id}>
-                  <td>
-                    <strong>{art.title}</strong>
-                    {art.is_featured && <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', background: 'var(--accent-warning)', color: '#000', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>UTAMA</span>}
-                    {art.is_breaking && <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', background: 'var(--accent-danger)', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>BREAKING ({art.breaking_priority})</span>}
-                  </td>
-                  <td>{art.category?.name || '-'}</td>
-                  <td>{art.author?.name || '-'}</td>
-                  <td>
-                    <span className="badge-category" style={{ background: art.status === 'published' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)', color: art.status === 'published' ? '#10b981' : '#f59e0b', borderColor: 'transparent' }}>
-                      {art.status === 'published' ? 'Tayang' : 'Draft'}
-                    </span>
-                  </td>
-                  <td>{art.views_count || 0}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      {art.status === 'published' ? (
-                        <button onClick={() => handleToggleArticleStatus(art)} className="btn btn-outline btn-sm" style={{ color: '#f59e0b', borderColor: '#f59e0b' }} title="Jadikan Draft / Sembunyikan">
-                          <EyeOff size={14} />
-                        </button>
-                      ) : (
-                        <button onClick={() => handleToggleArticleStatus(art)} className="btn btn-outline btn-sm" style={{ color: '#10b981', borderColor: '#10b981' }} title="Terbitkan / Publish">
-                          <Eye size={14} />
-                        </button>
-                      )}
-                      {user?.role === 'admin' && (
-                        <button onClick={() => handleToggleBreaking(art)} className="btn btn-outline btn-sm" style={{ color: art.is_breaking ? 'var(--accent-danger)' : 'var(--text-secondary)', borderColor: art.is_breaking ? 'var(--accent-danger)' : 'var(--border-color)' }} title="Toggle Breaking News">
-                          <Flame size={14} />
-                        </button>
-                      )}
-                      <button onClick={() => handleOpenArticleModal(art)} className="btn btn-outline btn-sm" title="Edit Artikel">
-                        <Edit size={14} />
-                      </button>
-                      <button onClick={() => handleDeleteArticle(art.id)} className="btn btn-outline btn-sm" style={{ color: 'var(--accent-danger)' }} title="Hapus Artikel">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          loading={loading}
+          emptyTitle="Belum ada artikel"
+          emptyDescription="Anda belum membuat artikel satupun."
+          emptyActionLabel="Buat Artikel Pertama"
+          onEmptyAction={() => handleOpenArticleModal()}
+          columns={[
+            { header: 'Judul Artikel', cell: (row) => (
+                <>
+                  <strong>{row.title}</strong>
+                  {row.is_featured && <StatusBadge type="featured" />}
+                  {row.is_breaking && <StatusBadge type="breaking" priority={row.breaking_priority} />}
+                </>
+              )
+            },
+            { header: 'Kategori', accessor: 'category_name', cell: (row) => row.category?.name || '-' },
+            { header: 'Penulis', accessor: 'author_name', cell: (row) => row.author?.name || '-' },
+            { header: 'Status', cell: (row) => <StatusBadge status={row.status} /> },
+            { header: 'Views', accessor: 'views_count', cell: (row) => row.views_count || 0 },
+            { header: 'Aksi', cell: (row) => (
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <Button 
+                    variant="outline" size="sm" 
+                    onClick={() => handleToggleArticleStatus(row)} 
+                    style={{ color: row.status === 'published' ? '#f59e0b' : '#10b981', borderColor: row.status === 'published' ? '#f59e0b' : '#10b981' }} 
+                    title={row.status === 'published' ? 'Jadikan Draft' : 'Terbitkan'}
+                  >
+                    {row.status === 'published' ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </Button>
+                  {user?.role === 'admin' && (
+                    <Button 
+                      variant="outline" size="sm" 
+                      onClick={() => handleToggleBreaking(row)} 
+                      style={{ color: row.is_breaking ? 'var(--accent-danger)' : 'var(--text-secondary)', borderColor: row.is_breaking ? 'var(--accent-danger)' : 'var(--border-color)' }}
+                      title="Toggle Breaking News"
+                    >
+                      <Flame size={14} />
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" onClick={() => handleOpenArticleModal(row)} title="Edit">
+                    <Edit size={14} />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleDeleteArticle(row.id)} style={{ color: 'var(--accent-danger)' }} title="Hapus">
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+              )
+            }
+          ]}
+          data={articles}
+        />
       )}
 
       {/* Categories Table */}
       {activeTab === 'categories' && (
-        <div className="admin-table-wrapper">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Nama Kategori</th>
-                <th>Slug</th>
-                <th>Deskripsi</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map((cat) => (
-                <tr key={cat.id}>
-                  <td><strong>{cat.name}</strong></td>
-                  <td><code>{cat.slug}</code></td>
-                  <td>{cat.description || '-'}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => handleOpenCategoryModal(cat)} className="btn btn-outline btn-sm" title="Edit Kategori">
-                        <Edit size={14} />
-                      </button>
-                      <button onClick={() => handleDeleteCategory(cat.id)} className="btn btn-outline btn-sm" style={{ color: 'var(--accent-danger)' }} title="Hapus Kategori">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          loading={loading}
+          columns={[
+            { header: 'Nama Kategori', cell: (row) => <strong>{row.name}</strong> },
+            { header: 'Slug', cell: (row) => <code>{row.slug}</code> },
+            { header: 'Deskripsi', accessor: 'description', cell: (row) => row.description || '-' },
+            { header: 'Aksi', cell: (row) => (
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <Button variant="outline" size="sm" onClick={() => handleOpenCategoryModal(row)} title="Edit">
+                    <Edit size={14} />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleDeleteCategory(row.id)} style={{ color: 'var(--accent-danger)' }} title="Hapus">
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+              )
+            }
+          ]}
+          data={categories}
+        />
       )}
 
       {/* Tags Table */}
       {activeTab === 'tags' && user?.role === 'admin' && (
-        <div className="admin-table-wrapper">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Nama Tag</th>
-                <th>Slug</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tags.map((tag) => (
-                <tr key={tag.id}>
-                  <td><strong>#{tag.name}</strong></td>
-                  <td><code>{tag.slug}</code></td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => handleOpenTagModal(tag)} className="btn btn-outline btn-sm" title="Edit Tag">
-                        <Edit size={14} />
-                      </button>
-                      <button onClick={() => handleDeleteTag(tag.id)} className="btn btn-outline btn-sm" style={{ color: 'var(--accent-danger)' }} title="Hapus Tag">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          loading={loading}
+          columns={[
+            { header: 'Nama Tag', cell: (row) => <strong>#{row.name}</strong> },
+            { header: 'Slug', cell: (row) => <code>{row.slug}</code> },
+            { header: 'Aksi', cell: (row) => (
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <Button variant="outline" size="sm" onClick={() => handleOpenTagModal(row)} title="Edit">
+                    <Edit size={14} />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleDeleteTag(row.id)} style={{ color: 'var(--accent-danger)' }} title="Hapus">
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+              )
+            }
+          ]}
+          data={tags}
+        />
       )}
 
       {/* Popular News Table */}
       {activeTab === 'popular' && user?.role === 'admin' && (
-        <div className="admin-table-wrapper">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Peringkat</th>
-                <th>Judul Artikel</th>
-                <th>Kategori</th>
-                <th>Penulis</th>
-                <th>Views (30 Hari)</th>
-                <th>Total Views</th>
-              </tr>
-            </thead>
-            <tbody>
-              {popularArticles.map((art, idx) => (
-                <tr key={art.id}>
-                  <td><strong>#{idx + 1}</strong></td>
-                  <td><strong>{art.title}</strong></td>
-                  <td>{art.category?.name || '-'}</td>
-                  <td>{art.author?.name || '-'}</td>
-                  <td><strong style={{ color: 'var(--accent-primary)' }}>{art.period_views}</strong></td>
-                  <td>{art.views_count}</td>
-                </tr>
-              ))}
-              {popularArticles.length === 0 && (
-                <tr>
-                  <td colSpan="6" style={{ textAlign: 'center' }}>Belum ada data popular news dalam 30 hari terakhir.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          loading={loading}
+          columns={[
+            { header: 'Peringkat', cell: (row, idx) => <strong>#{popularArticles.indexOf(row) + 1}</strong> },
+            { header: 'Judul Artikel', cell: (row) => <strong>{row.title}</strong> },
+            { header: 'Kategori', cell: (row) => row.category?.name || '-' },
+            { header: 'Penulis', cell: (row) => row.author?.name || '-' },
+            { header: 'Views (30 Hari)', cell: (row) => <strong style={{ color: 'var(--accent-primary)' }}>{row.period_views}</strong> },
+            { header: 'Total Views', cell: (row) => row.views_count }
+          ]}
+          data={popularArticles}
+        />
       )}
 
       {/* Account Management Tab */}
@@ -477,272 +436,208 @@ export const AdminDashboard = () => {
       )}
 
       {/* Modal Article Form */}
-      {showArticleModal && (
-        <div className="modal-backdrop">
-          <div className="modal-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2>{editingArticle ? 'Edit Artikel' : 'Tulis Artikel Baru'}</h2>
-              <button onClick={() => setShowArticleModal(false)} style={{ background: 'transparent', color: 'var(--text-secondary)' }}>
-                <X size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleSaveArticle}>
-              <div className="form-group">
-                <label>Judul Artikel</label>
+      <ModalForm
+        isOpen={showArticleModal}
+        onClose={() => setShowArticleModal(false)}
+        onSubmit={handleSaveArticle}
+        title={editingArticle ? 'Edit Artikel' : 'Tulis Artikel Baru'}
+        submitLabel="Simpan Artikel"
+        maxWidth="800px"
+      >
+        <FormField
+          label="Judul Artikel"
+          id="article-title"
+          value={articleForm.title}
+          onChange={(e) => setArticleForm({ ...articleForm, title: e.target.value })}
+          required
+        />
+
+        <FormField
+          label="Kategori"
+          id="article-category"
+          as="select"
+          value={articleForm.category_id}
+          onChange={(e) => setArticleForm({ ...articleForm, category_id: e.target.value })}
+          required
+        >
+          <option value="">Pilih Kategori</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </FormField>
+
+        <div className="form-group">
+          <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Tag Berita</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', padding: '0.5rem', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}>
+            {tags.map((tag) => (
+              <label key={tag.id} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', fontSize: '0.9rem' }}>
                 <input
-                  type="text"
-                  className="form-control"
-                  value={articleForm.title}
-                  onChange={(e) => setArticleForm({ ...articleForm, title: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Kategori</label>
-                <select
-                  className="form-control"
-                  value={articleForm.category_id}
-                  onChange={(e) => setArticleForm({ ...articleForm, category_id: e.target.value })}
-                  required
-                >
-                  <option value="">Pilih Kategori</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Tag Berita</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', padding: '0.5rem', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}>
-                  {tags.map((tag) => (
-                    <label key={tag.id} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                      <input
-                        type="checkbox"
-                        checked={articleForm.tag_ids.includes(tag.id)}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setArticleForm(prev => {
-                            if (checked) {
-                              return { ...prev, tag_ids: [...prev.tag_ids, tag.id] };
-                            } else {
-                              return { ...prev, tag_ids: prev.tag_ids.filter(id => id !== tag.id) };
-                            }
-                          });
-                        }}
-                      />
-                      #{tag.name}
-                    </label>
-                  ))}
-                  {tags.length === 0 && <span style={{ color: 'var(--text-muted)' }}>Belum ada master tag tersedia.</span>}
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Ringkasan (Summary)</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={articleForm.summary}
-                  onChange={(e) => setArticleForm({ ...articleForm, summary: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>URL Gambar Thumbnail</label>
-                <input
-                  type="url"
-                  className="form-control"
-                  placeholder="https://images.unsplash.com/..."
-                  value={articleForm.thumbnail_url}
-                  onChange={(e) => setArticleForm({ ...articleForm, thumbnail_url: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Konten Lengkap Berita</label>
-                <ReactQuill
-                  theme="snow"
-                  value={articleForm.content}
-                  onChange={(value) => setArticleForm({ ...articleForm, content: value })}
-                  modules={{
-                    toolbar: [
-                      [{ 'header': [2, 3, 4, false] }],
-                      ['bold', 'italic', 'underline', 'strike'],
-                      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                      ['blockquote', 'link', 'image', 'video'],
-                      ['clean']
-                    ]
+                  type="checkbox"
+                  checked={articleForm.tag_ids.includes(tag.id)}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setArticleForm(prev => {
+                      if (checked) {
+                        return { ...prev, tag_ids: [...prev.tag_ids, tag.id] };
+                      } else {
+                        return { ...prev, tag_ids: prev.tag_ids.filter(id => id !== tag.id) };
+                      }
+                    });
                   }}
-                  style={{ minHeight: '200px', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
                 />
-              </div>
-
-              <div className="form-group">
-                <label>Status</label>
-                <select
-                  className="form-control"
-                  value={articleForm.status}
-                  onChange={(e) => setArticleForm({ ...articleForm, status: e.target.value })}
-                  required
-                >
-                  <option value="published">Tayang (Published)</option>
-                  <option value="draft">Draft (Belum Tayang)</option>
-                </select>
-              </div>
-
-              <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={articleForm.is_featured}
-                    onChange={(e) => setArticleForm({ ...articleForm, is_featured: e.target.checked })}
-                  />
-                  Jadikan Berita Utama (Featured Hero)
-                </label>
-              </div>
-
-              {/* SEO Metadata Fields */}
-              <details style={{ marginBottom: '1.5rem', background: 'var(--bg-secondary)', padding: '1rem', borderRadius: 'var(--radius-sm)', border: 'var(--glass-border)' }}>
-                <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>Metadata SEO (Opsional)</summary>
-                <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label>Meta Title <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>({articleForm.meta_title.length}/60)</span></label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      maxLength={60}
-                      placeholder="Judul untuk mesin pencari"
-                      value={articleForm.meta_title}
-                      onChange={(e) => setArticleForm({ ...articleForm, meta_title: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label>Meta Description <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>({articleForm.meta_description.length}/160)</span></label>
-                    <textarea
-                      className="form-control"
-                      rows="2"
-                      maxLength={160}
-                      placeholder="Deskripsi singkat untuk mesin pencari"
-                      value={articleForm.meta_description}
-                      onChange={(e) => setArticleForm({ ...articleForm, meta_description: e.target.value })}
-                    ></textarea>
-                  </div>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label>Canonical URL</label>
-                    <input
-                      type="url"
-                      className="form-control"
-                      placeholder="https://contoh.com/article/judul-artikel"
-                      value={articleForm.canonical_url}
-                      onChange={(e) => setArticleForm({ ...articleForm, canonical_url: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label>OG Image URL</label>
-                    <input
-                      type="url"
-                      className="form-control"
-                      placeholder="https://contoh.com/images/og.jpg"
-                      value={articleForm.og_image_url}
-                      onChange={(e) => setArticleForm({ ...articleForm, og_image_url: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </details>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-                <button type="button" onClick={() => setShowArticleModal(false)} className="btn btn-outline">
-                  Batal
-                </button>
-                <button type="submit" className="btn btn-primary" id="btn-save-article-modal">
-                  Simpan Artikel
-                </button>
-              </div>
-            </form>
+                #{tag.name}
+              </label>
+            ))}
+            {tags.length === 0 && <span style={{ color: 'var(--text-muted)' }}>Belum ada master tag tersedia.</span>}
           </div>
         </div>
-      )}
+
+        <FormField
+          label="Ringkasan (Summary)"
+          id="article-summary"
+          value={articleForm.summary}
+          onChange={(e) => setArticleForm({ ...articleForm, summary: e.target.value })}
+        />
+
+        <FormField
+          label="URL Gambar Thumbnail"
+          id="article-thumbnail"
+          type="url"
+          placeholder="https://images.unsplash.com/..."
+          value={articleForm.thumbnail_url}
+          onChange={(e) => setArticleForm({ ...articleForm, thumbnail_url: e.target.value })}
+        />
+
+        <div className="form-group">
+          <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Konten Lengkap Berita</label>
+          <ReactQuill
+            theme="snow"
+            value={articleForm.content}
+            onChange={(value) => setArticleForm({ ...articleForm, content: value })}
+            modules={{
+              toolbar: [
+                [{ 'header': [2, 3, 4, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['blockquote', 'link', 'image', 'video'],
+                ['clean']
+              ]
+            }}
+            style={{ minHeight: '200px', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+          />
+        </div>
+
+        <FormField
+          label="Status"
+          id="article-status"
+          as="select"
+          value={articleForm.status}
+          onChange={(e) => setArticleForm({ ...articleForm, status: e.target.value })}
+          required
+        >
+          <option value="published">Tayang (Published)</option>
+          <option value="draft">Draft (Belum Tayang)</option>
+        </FormField>
+
+        <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={articleForm.is_featured}
+              onChange={(e) => setArticleForm({ ...articleForm, is_featured: e.target.checked })}
+            />
+            Jadikan Berita Utama (Featured Hero)
+          </label>
+        </div>
+
+        {/* SEO Metadata Fields */}
+        <details style={{ marginBottom: '1.5rem', background: 'var(--bg-secondary)', padding: '1rem', borderRadius: 'var(--radius-sm)', border: 'var(--glass-border)' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>Metadata SEO (Opsional)</summary>
+          <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <FormField
+              label={`Meta Title (${articleForm.meta_title.length}/60)`}
+              id="meta-title"
+              maxLength={60}
+              placeholder="Judul untuk mesin pencari"
+              value={articleForm.meta_title}
+              onChange={(e) => setArticleForm({ ...articleForm, meta_title: e.target.value })}
+              className="m-0"
+            />
+            <FormField
+              label={`Meta Description (${articleForm.meta_description.length}/160)`}
+              id="meta-description"
+              as="textarea"
+              rows="2"
+              maxLength={160}
+              placeholder="Deskripsi singkat untuk mesin pencari"
+              value={articleForm.meta_description}
+              onChange={(e) => setArticleForm({ ...articleForm, meta_description: e.target.value })}
+              className="m-0"
+            />
+            <FormField
+              label="Canonical URL"
+              id="canonical-url"
+              type="url"
+              placeholder="https://contoh.com/article/judul-artikel"
+              value={articleForm.canonical_url}
+              onChange={(e) => setArticleForm({ ...articleForm, canonical_url: e.target.value })}
+              className="m-0"
+            />
+            <FormField
+              label="OG Image URL"
+              id="og-image-url"
+              type="url"
+              placeholder="https://contoh.com/images/og.jpg"
+              value={articleForm.og_image_url}
+              onChange={(e) => setArticleForm({ ...articleForm, og_image_url: e.target.value })}
+              className="m-0"
+            />
+          </div>
+        </details>
+      </ModalForm>
 
       {/* Modal Category Form */}
-      {showCategoryModal && (
-        <div className="modal-backdrop">
-          <div className="modal-card" style={{ maxWidth: '450px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2>{editingCategory ? 'Edit Kategori' : 'Kategori Baru'}</h2>
-              <button onClick={() => setShowCategoryModal(false)} style={{ background: 'transparent', color: 'var(--text-secondary)' }}>
-                <X size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleSaveCategory}>
-              <div className="form-group">
-                <label>Nama Kategori</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={categoryForm.name}
-                  onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Deskripsi</label>
-                <textarea
-                  className="form-control"
-                  rows="3"
-                  value={categoryForm.description}
-                  onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
-                ></textarea>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-                <button type="button" onClick={() => setShowCategoryModal(false)} className="btn btn-outline">
-                  Batal
-                </button>
-                <button type="submit" className="btn btn-primary" id="btn-save-category-modal">
-                  Simpan Kategori
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <ModalForm
+        isOpen={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+        onSubmit={handleSaveCategory}
+        title={editingCategory ? 'Edit Kategori' : 'Kategori Baru'}
+        submitLabel="Simpan Kategori"
+        maxWidth="450px"
+      >
+        <FormField
+          label="Nama Kategori"
+          id="category-name"
+          value={categoryForm.name}
+          onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+          required
+        />
+        <FormField
+          label="Deskripsi"
+          id="category-description"
+          as="textarea"
+          rows="3"
+          value={categoryForm.description}
+          onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
+        />
+      </ModalForm>
       {/* Modal Tag Form */}
-      {showTagModal && (
-        <div className="modal-backdrop">
-          <div className="modal-card" style={{ maxWidth: '450px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2>{editingTag ? 'Edit Tag' : 'Tag Baru'}</h2>
-              <button onClick={() => setShowTagModal(false)} style={{ background: 'transparent', color: 'var(--text-secondary)' }}>
-                <X size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleSaveTag}>
-              <div className="form-group">
-                <label>Nama Tag</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={tagForm.name}
-                  onChange={(e) => setTagForm({ ...tagForm, name: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-                <button type="button" onClick={() => setShowTagModal(false)} className="btn btn-outline">
-                  Batal
-                </button>
-                <button type="submit" className="btn btn-primary" id="btn-save-tag-modal">
-                  Simpan Tag
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-        )}
+      <ModalForm
+        isOpen={showTagModal}
+        onClose={() => setShowTagModal(false)}
+        onSubmit={handleSaveTag}
+        title={editingTag ? 'Edit Tag' : 'Tag Baru'}
+        submitLabel="Simpan Tag"
+        maxWidth="450px"
+      >
+        <FormField
+          label="Nama Tag"
+          id="tag-name"
+          value={tagForm.name}
+          onChange={(e) => setTagForm({ ...tagForm, name: e.target.value })}
+          required
+        />
+      </ModalForm>
 
       </main>
     </>

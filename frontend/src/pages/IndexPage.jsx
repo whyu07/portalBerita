@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../services/api';
-import { ArticleCard } from '../components/ArticleCard';
-import { Pagination } from '../components/Pagination';
+import { ArticleCard } from '../components/news/ArticleCard';
+import { Pagination } from '../components/common/Pagination';
+import { FilterBar } from '../components/dashboard/FilterBar';
+import { EmptyState } from '../components/common/EmptyState';
+import { Skeleton, CardSkeleton } from '../components/common/Skeleton';
 
 export default function IndexPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -82,6 +85,33 @@ export default function IndexPage() {
     setSearchParams(new URLSearchParams());
   };
 
+  const filters = [
+    {
+      key: 'category',
+      label: 'Kanal',
+      type: 'select',
+      value: category,
+      onChange: (val) => handleFilterChange('category', val),
+      options: categories.map(c => ({ value: c.slug, label: c.name }))
+    },
+    {
+      key: 'date_from',
+      label: 'Mulai Tanggal',
+      type: 'date',
+      value: dateFrom,
+      onChange: (val) => handleFilterChange('date_from', val),
+      max: dateTo || undefined
+    },
+    {
+      key: 'date_to',
+      label: 'Sampai Tanggal',
+      type: 'date',
+      value: dateTo,
+      onChange: (val) => handleFilterChange('date_to', val),
+      min: dateFrom || undefined
+    }
+  ];
+
   return (
     <div className="container mt-4 mb-8">
       <header className="mb-8">
@@ -92,49 +122,7 @@ export default function IndexPage() {
       </header>
 
       {/* Filter Section */}
-      <div className="ui-panel d-flex flex-wrap mb-8" style={{ gap: '1rem' }}>
-        <div className="form-group flex-1" style={{ minWidth: '200px' }}>
-          <label className="form-label">Kanal</label>
-          <select 
-            className="form-control" 
-            value={category}
-            onChange={(e) => handleFilterChange('category', e.target.value)}
-          >
-            <option value="">Semua Kanal</option>
-            {categories.map(c => (
-              <option key={c.id} value={c.slug}>{c.name}</option>
-            ))}
-          </select>
-        </div>
-        
-        <div className="form-group flex-1" style={{ minWidth: '150px' }}>
-          <label className="form-label">Mulai Tanggal</label>
-          <input 
-            type="date" 
-            className="form-control" 
-            value={dateFrom}
-            onChange={(e) => handleFilterChange('date_from', e.target.value)}
-            max={dateTo || undefined}
-          />
-        </div>
-        
-        <div className="form-group flex-1" style={{ minWidth: '150px' }}>
-          <label className="form-label">Sampai Tanggal</label>
-          <input 
-            type="date" 
-            className="form-control" 
-            value={dateTo}
-            onChange={(e) => handleFilterChange('date_to', e.target.value)}
-            min={dateFrom || undefined}
-          />
-        </div>
-
-        <div className="d-flex" style={{ alignItems: 'flex-end', flex: '1 1 100px' }}>
-          <button onClick={handleResetFilter} className="btn btn-outline" style={{ width: '100%', height: '42px' }}>
-            Reset Filter
-          </button>
-        </div>
-      </div>
+      <FilterBar filters={filters} onReset={handleResetFilter} />
 
       {error && (
         <div className="text-center p-4 text-danger" style={{ background: 'rgba(239,68,68,0.1)', borderRadius: 'var(--radius-lg)' }}>
@@ -143,16 +131,17 @@ export default function IndexPage() {
       )}
 
       {loading ? (
-        <div className="text-center p-4 text-muted">
-          Memuat indeks berita...
+        <div className="news-grid">
+          {[1,2,3,4,5,6].map(i => <CardSkeleton key={i} />)}
         </div>
       ) : (
         <>
           {articles.length === 0 ? (
-            <div className="ui-panel text-center">
-              <h3 className="text-lg font-bold mb-4">Tidak ada berita pada filter ini.</h3>
-              <button onClick={handleResetFilter} className="btn btn-primary">Reset Filter</button>
-            </div>
+            <EmptyState 
+              title="Tidak ada berita pada filter ini."
+              actionLabel="Reset Filter"
+              onAction={handleResetFilter}
+            />
           ) : (
             <div className="news-grid">
               {articles.map((article) => (

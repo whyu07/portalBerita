@@ -5,7 +5,9 @@ import { useAuth } from '../context/AuthContext';
 import { Clock, Eye, User, MessageSquare, Send, Trash2 } from 'lucide-react';
 import { ArticleContent } from '../components/ArticleContent';
 import { Breadcrumb } from '../components/Breadcrumb';
-import { ArticleCard } from '../components/ArticleCard';
+import { RelatedCard } from '../components/news/RelatedCard';
+import { CategoryBadge } from '../components/news/CategoryBadge';
+import { Button } from '../components/common/Button';
 
 export const NewsDetail = () => {
   const { slug } = useParams();
@@ -17,17 +19,20 @@ export const NewsDetail = () => {
   const [loading, setLoading] = useState(true);
   const [relatedLoading, setRelatedLoading] = useState(true);
   const [posting, setPosting] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setRelatedLoading(true);
+      setError(null);
       try {
         const articleRes = await api.get(`/articles/${slug}`);
         setArticle(articleRes.data);
         setComments(articleRes.data.comments || []);
       } catch (err) {
         console.error('Failed to load article detail:', err);
+        setError('Artikel tidak ditemukan.');
         setArticle(null);
       } finally {
         setLoading(false);
@@ -167,11 +172,7 @@ export const NewsDetail = () => {
           <Breadcrumb items={breadcrumbItems} />
 
           <header className="mb-8">
-            {article.category && (
-              <span className="badge-category mb-4">
-                {article.category.name}
-              </span>
-            )}
+            <CategoryBadge category={article.category} className="mb-4" />
             <h1 className="text-4xl font-bold mb-4" style={{ lineHeight: '1.2' }}>{article.title}</h1>
             
             <div className="d-flex align-center flex-wrap mb-8 text-muted text-sm" style={{ gap: '1.5rem' }}>
@@ -199,9 +200,9 @@ export const NewsDetail = () => {
           {!relatedLoading && relatedArticles.length > 0 && (
             <section style={{ borderTop: '2px solid var(--color-border)', paddingTop: '2.5rem', marginTop: '3rem', marginBottom: '2rem' }}>
               <h3 className="text-2xl font-bold mb-4">Berita Terkait</h3>
-              <div className="news-grid">
+              <div className="d-flex flex-col" style={{ gap: '1rem' }}>
                 {relatedArticles.map((ra) => (
-                  <ArticleCard key={ra.id} article={ra} />
+                  <RelatedCard key={ra.id} article={ra} />
                 ))}
               </div>
             </section>
@@ -226,9 +227,9 @@ export const NewsDetail = () => {
                       required
                     ></textarea>
                   </div>
-                  <button type="submit" className="btn btn-primary" disabled={posting}>
-                    <Send size={16} /> {posting ? 'Mengirim...' : 'Kirim Komentar'}
-                  </button>
+                  <Button type="submit" variant="primary" loading={posting} icon={<Send size={16} />}>
+                    Kirim Komentar
+                  </Button>
                 </form>
               </div>
             ) : (
@@ -250,21 +251,33 @@ export const NewsDetail = () => {
                       {(user?.id === c.user_id || user?.role === 'admin') && (
                         <button
                           onClick={() => handleDeleteComment(c.id)}
-                          style={{ background: 'transparent', color: 'var(--accent-danger)', cursor: 'pointer' }}
-                          title="Hapus Komentar"
+                          className="btn btn-sm"
+                          style={{ color: 'var(--accent-danger)', background: 'rgba(239, 68, 68, 0.1)' }}
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={14} /> Hapus
                         </button>
                       )}
                     </div>
                   </div>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: '1.6' }}>{c.content}</p>
+                  <p className="text-primary m-0">{c.content}</p>
                 </div>
               ))}
+              {comments.length === 0 && (
+                <p className="text-center text-muted">Belum ada komentar. Jadilah yang pertama berkomentar!</p>
+              )}
             </div>
           </section>
         </article>
 
+        {/* Kolom Kanan: Iklan atau sidebar lain (Kosong untuk sekarang, bisa diisi nanti) */}
+        <aside>
+          <div className="sticky-sidebar">
+            <div className="ui-panel text-center">
+              <span className="text-muted text-sm uppercase">Space Iklan</span>
+              <div style={{ height: '300px', background: 'var(--bg-secondary)', marginTop: '1rem', borderRadius: 'var(--radius-md)' }}></div>
+            </div>
+          </div>
+        </aside>
       </div>
     </main>
   );
