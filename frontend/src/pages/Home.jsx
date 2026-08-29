@@ -46,7 +46,7 @@ export const Home = () => {
 
   if (loading) {
     return (
-      <main className="main-content" style={{ textAlign: 'center', padding: '5rem 0' }}>
+      <main className="main-content text-center p-4">
         Memuat data portal berita...
       </main>
     );
@@ -56,15 +56,15 @@ export const Home = () => {
   if (searchQuery) {
     return (
       <main className="main-content">
-        <div style={{ marginBottom: '2rem', background: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: 'var(--glass-border)' }}>
-          <h2 style={{ fontSize: '1.5rem' }}>Hasil pencarian untuk: <span style={{ color: 'var(--accent-primary)' }}>"{searchQuery}"</span></h2>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Ditemukan {allArticles.length} artikel</p>
+        <div className="ui-panel mb-8">
+          <h2 className="text-2xl font-bold">Hasil pencarian untuk: <span className="text-primary">"{searchQuery}"</span></h2>
+          <p className="text-muted mt-2">Ditemukan {allArticles.length} artikel</p>
         </div>
         
         {allArticles.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-            <h3>Tidak ada artikel yang cocok</h3>
-            <Link to="/" className="btn btn-outline" style={{ marginTop: '1rem' }}>Kembali ke Beranda</Link>
+          <div className="text-center p-4">
+            <h2 className="text-2xl font-bold mb-4">Tidak ada artikel yang cocok dengan pencarian Anda.</h2>
+            <Link to="/" className="btn btn-outline mt-4">Kembali ke Beranda</Link>
           </div>
         ) : (
           <div className="news-grid">
@@ -86,7 +86,7 @@ export const Home = () => {
         <HeroNews featured={featured} latest={latestArticles} />
 
         {/* 2. Grid Utama (70/30) - Kiri (Terbaru & Editor's Choice), Kanan (Terpopuler) */}
-        <div className="two-column-layout" style={{ marginBottom: '2rem' }}>
+        <div className="two-column-layout mb-8">
           <div>
             {moreLatestArticles.length > 0 && (
               <LatestNews articles={moreLatestArticles} />

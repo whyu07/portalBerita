@@ -39,7 +39,7 @@ export const ArticleCard = ({ article }) => {
             <Link 
               key={tag.id}
               to={`/tag/${tag.slug}`}
-              className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-gray-200 transition-colors duration-200 truncate max-w-[80px]"
+              className="badge-tag"
             >
               #{tag.name}
             </Link>

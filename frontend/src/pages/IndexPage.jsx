@@ -83,26 +83,18 @@ export default function IndexPage() {
   };
 
   return (
-    <div className="container" style={{ marginTop: '2rem', marginBottom: '4rem' }}>
-      <header style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Indeks Berita</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>
+    <div className="container mt-4 mb-8">
+      <header className="mb-8">
+        <h1 className="text-4xl mb-2">Indeks Berita</h1>
+        <p className="text-muted">
           {total} berita ditemukan
         </p>
       </header>
 
       {/* Filter Section */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '1rem', 
-        flexWrap: 'wrap', 
-        marginBottom: '2rem', 
-        padding: '1.5rem', 
-        background: 'var(--bg-secondary)', 
-        borderRadius: 'var(--radius-lg)' 
-      }}>
-        <div style={{ flex: '1 1 200px' }}>
-          <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: 600 }}>Kanal</label>
+      <div className="ui-panel d-flex flex-wrap mb-8" style={{ gap: '1rem' }}>
+        <div className="form-group flex-1" style={{ minWidth: '200px' }}>
+          <label className="form-label">Kanal</label>
           <select 
             className="form-control" 
             value={category}
@@ -115,8 +107,8 @@ export default function IndexPage() {
           </select>
         </div>
         
-        <div style={{ flex: '1 1 150px' }}>
-          <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: 600 }}>Mulai Tanggal</label>
+        <div className="form-group flex-1" style={{ minWidth: '150px' }}>
+          <label className="form-label">Mulai Tanggal</label>
           <input 
             type="date" 
             className="form-control" 
@@ -126,8 +118,8 @@ export default function IndexPage() {
           />
         </div>
         
-        <div style={{ flex: '1 1 150px' }}>
-          <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: 600 }}>Sampai Tanggal</label>
+        <div className="form-group flex-1" style={{ minWidth: '150px' }}>
+          <label className="form-label">Sampai Tanggal</label>
           <input 
             type="date" 
             className="form-control" 
@@ -137,29 +129,29 @@ export default function IndexPage() {
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-          <button onClick={handleResetFilter} className="btn btn-outline" style={{ height: '42px', width: '100%' }}>
+        <div className="d-flex" style={{ alignItems: 'flex-end', flex: '1 1 100px' }}>
+          <button onClick={handleResetFilter} className="btn btn-outline" style={{ width: '100%', height: '42px' }}>
             Reset Filter
           </button>
         </div>
       </div>
 
       {error && (
-        <div style={{ padding: '2rem', textAlign: 'center', background: 'rgba(239,68,68,0.1)', color: '#ef4444', borderRadius: 'var(--radius-lg)' }}>
-          <p>{error}</p>
+        <div className="text-center p-4 text-danger" style={{ background: 'rgba(239,68,68,0.1)', borderRadius: 'var(--radius-lg)' }}>
+          {error}
         </div>
       )}
 
       {loading ? (
-        <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+        <div className="text-center p-4 text-muted">
           Memuat indeks berita...
         </div>
       ) : (
         <>
           {articles.length === 0 ? (
-            <div style={{ padding: '4rem', textAlign: 'center', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)' }}>
-              <h3 style={{ marginBottom: '1rem' }}>Tidak ada berita pada filter ini.</h3>
-              <button onClick={handleResetFilter} className="btn btn-primary">Tampilkan Semua Berita</button>
+            <div className="ui-panel text-center">
+              <h3 className="text-lg font-bold mb-4">Tidak ada berita pada filter ini.</h3>
+              <button onClick={handleResetFilter} className="btn btn-primary">Reset Filter</button>
             </div>
           ) : (
             <div className="news-grid">

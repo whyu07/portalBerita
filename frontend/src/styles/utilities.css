@@ -1,0 +1,54 @@
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+/* Layout & Display */
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-flex { display: flex !important; }
+
+.flex-col { flex-direction: column !important; }
+.flex-row { flex-direction: row !important; }
+.align-center { align-items: center !important; }
+.justify-center { justify-content: center !important; }
+.justify-between { justify-content: space-between !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.flex-1 { flex: 1 !important; }
+
+/* Text Alignment & Utilities */
+.text-center { text-align: center !important; }
+.text-left { text-align: left !important; }
+.text-right { text-align: right !important; }
+.text-uppercase { text-transform: uppercase !important; }
+.font-bold { font-weight: 700 !important; }
+.font-semibold { font-weight: 600 !important; }
+
+/* Text Colors */
+.text-primary { color: var(--color-primary) !important; }
+.text-muted { color: var(--color-text-muted) !important; }
+.text-danger { color: var(--color-danger) !important; }
+
+/* Text Sizes */
+.text-sm { font-size: var(--text-sm) !important; }
+.text-base { font-size: var(--text-base) !important; }
+.text-lg { font-size: var(--text-lg) !important; }
+.text-xl { font-size: var(--text-xl) !important; }
+.text-2xl { font-size: var(--text-2xl) !important; }
+
+/* Margins & Paddings (Basic utility subset) */
+.m-0 { margin: 0 !important; }
+.mt-1 { margin-top: var(--space-1) !important; }
+.mt-2 { margin-top: var(--space-2) !important; }
+.mt-4 { margin-top: var(--space-4) !important; }
+.mb-1 { margin-bottom: var(--space-1) !important; }
+.mb-2 { margin-bottom: var(--space-2) !important; }
+.mb-4 { margin-bottom: var(--space-4) !important; }
+.mb-8 { margin-bottom: var(--space-8) !important; }
+
+.p-0 { padding: 0 !important; }
+.p-4 { padding: var(--space-4) !important; }
+
+/* Grid specific fixes */
+.grid-item-min-0 {
+  min-width: 0;
+}

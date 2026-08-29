@@ -1,0 +1,166 @@
+/* ==========================================================================
+   Components (UI Kit)
+   ========================================================================== */
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.btn-sm {
+  padding: 0.35rem 0.75rem;
+  font-size: var(--text-xs);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+}
+
+.btn-danger {
+  background-color: var(--color-danger);
+  color: var(--color-surface);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #dc2626; /* Darker red */
+}
+
+/* Badges */
+.badge-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-pill);
+}
+
+.badge-category {
+  background-color: rgba(15, 118, 110, 0.1);
+  color: var(--color-primary);
+  border: 1px solid rgba(15, 118, 110, 0.2);
+}
+
+.badge-tag {
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  border-radius: var(--radius-pill);
+  transition: background-color var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+.badge-tag:hover {
+  background-color: var(--color-border);
+}
+
+.ui-badge--accent {
+  background-color: rgba(159, 18, 57, 0.1);
+  color: var(--color-accent);
+  border: 1px solid rgba(159, 18, 57, 0.2);
+}
+
+/* Forms & Inputs */
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  transition: border-color var(--transition-fast);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.form-control:disabled {
+  background: var(--color-surface-hover);
+  cursor: not-allowed;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: var(--space-4);
+}
+
+.form-group label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* Section Titles (Editorial Style) */
+.ui-section-title {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  margin-bottom: var(--space-4);
+  text-transform: uppercase;
+  border-bottom: 3px solid var(--color-primary);
+  display: inline-block;
+  padding-bottom: 0.25rem;
+}
+
+/* Skeletons */
+.ui-skeleton {
+  background: linear-gradient(90deg, #e2e8f0 25%, #cbd5e1 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Panels / Surface Containers */
+.ui-panel {
+  background: var(--color-surface);
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  margin-bottom: var(--space-8);
+}

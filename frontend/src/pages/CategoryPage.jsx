@@ -39,26 +39,26 @@ export const CategoryPage = () => {
 
   return (
     <main className="main-content">
-      <Link to="/" className="btn btn-outline btn-sm" style={{ marginBottom: '1.5rem' }}>
+      <Link to="/" className="btn btn-outline btn-sm mb-6">
         <ArrowLeft size={16} /> Kembali ke Beranda
       </Link>
 
-      <div style={{ background: 'var(--bg-secondary)', padding: '2rem', borderRadius: 'var(--radius-lg)', border: 'var(--glass-border)', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--accent-primary)', marginBottom: '0.5rem' }}>
+      <div className="ui-panel">
+        <div className="d-flex align-center text-primary mb-2" style={{ gap: '0.75rem' }}>
           <Folder size={24} />
-          <span style={{ fontSize: '0.9rem', fontWeight: 700, textTransform: 'uppercase' }}>KATEGORI</span>
+          <span className="text-sm font-bold text-uppercase">KATEGORI</span>
         </div>
-        <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>{category ? category.name : slug}</h1>
-        {category?.description && <p style={{ color: 'var(--text-secondary)' }}>{category.description}</p>}
+        <h1 className="text-4xl mb-2">{category ? category.name : slug}</h1>
+        {category?.description && <p className="text-muted">{category.description}</p>}
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-muted)' }}>
-          Memuat artikel dalam kategori...
+        <div className="text-center p-4 text-muted">
+          Memuat artikel...
         </div>
       ) : articles.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '4rem 0', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
-          <h3>Belum ada artikel dalam kategori ini</h3>
+        <div className="ui-panel text-center">
+          <p className="text-muted">Belum ada artikel dalam kategori ini.</p>
         </div>
       ) : (
         <div className="news-grid">

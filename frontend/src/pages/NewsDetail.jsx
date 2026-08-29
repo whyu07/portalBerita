@@ -137,11 +137,11 @@ export const NewsDetail = () => {
     );
   }
 
-  if (!article) {
+  if (error) {
     return (
-      <main className="main-content" style={{ textAlign: 'center', padding: '5rem 0' }}>
-        <h2>Artikel tidak ditemukan</h2>
-        <Link to="/" className="btn btn-primary" style={{ marginTop: '1rem' }}>Kembali ke Beranda</Link>
+      <main className="main-content text-center p-4">
+        <h2 className="text-xl font-bold text-danger mb-4">{error}</h2>
+        <Link to="/" className="btn btn-primary mt-4">Kembali ke Beranda</Link>
       </main>
     );
   }
@@ -166,26 +166,26 @@ export const NewsDetail = () => {
         <article>
           <Breadcrumb items={breadcrumbItems} />
 
-          <div>
+          <header className="mb-8">
             {article.category && (
-              <span className="badge-category" style={{ marginBottom: '1rem' }}>
+              <span className="badge-category mb-4">
                 {article.category.name}
               </span>
             )}
-            <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', lineHeight: '1.2' }}>{article.title}</h1>
+            <h1 className="text-4xl font-bold mb-4" style={{ lineHeight: '1.2' }}>{article.title}</h1>
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div className="d-flex align-center flex-wrap mb-8 text-muted text-sm" style={{ gap: '1.5rem' }}>
+              <span className="d-flex align-center" style={{ gap: '0.5rem' }}>
                 <User size={16} /> Oleh {article.author?.name || 'Redaksi'}
               </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="d-flex align-center" style={{ gap: '0.5rem' }}>
                 <Clock size={16} /> {new Date(article.published_at || article.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
               </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="d-flex align-center" style={{ gap: '0.5rem' }}>
                 <Eye size={16} /> {article.views_count || 0} Dilihat
               </span>
             </div>
-          </div>
+          </header>
 
           {article.thumbnail_url && (
             <div style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', marginBottom: '2.5rem', maxHeight: '500px', width: '100%' }}>
@@ -197,9 +197,9 @@ export const NewsDetail = () => {
 
           {/* Related News Section */}
           {!relatedLoading && relatedArticles.length > 0 && (
-            <section style={{ borderTop: '2px solid var(--border-color)', paddingTop: '2.5rem', marginTop: '3rem', marginBottom: '2rem' }}>
-              <h3 style={{ fontSize: '1.4rem', marginBottom: '1.5rem', fontWeight: 700 }}>Berita Terkait</h3>
-              <div className="news-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))' }}>
+            <section style={{ borderTop: '2px solid var(--color-border)', paddingTop: '2.5rem', marginTop: '3rem', marginBottom: '2rem' }}>
+              <h3 className="text-2xl font-bold mb-4">Berita Terkait</h3>
+              <div className="news-grid">
                 {relatedArticles.map((ra) => (
                   <ArticleCard key={ra.id} article={ra} />
                 ))}
@@ -208,40 +208,43 @@ export const NewsDetail = () => {
           )}
 
           {/* Comment Section */}
-          <section style={{ borderTop: '2px solid var(--border-color)', paddingTop: '2.5rem' }}>
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '1.4rem' }}>
-              <MessageSquare style={{ color: 'var(--accent-primary)' }} /> Komentar ({comments.length})
+          <section style={{ borderTop: '2px solid var(--color-border)', paddingTop: '2.5rem' }}>
+            <h3 className="d-flex align-center text-2xl mb-4" style={{ gap: '0.5rem' }}>
+              <MessageSquare className="text-primary" /> Komentar ({comments.length})
             </h3>
 
             {user ? (
-              <form onSubmit={handleCommentSubmit} style={{ marginBottom: '2.5rem' }}>
-                <div className="form-group">
-                  <textarea
-                    className="form-control"
-                    rows="4"
-                    placeholder="Tulis pendapat atau komentar Anda..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    required
-                  ></textarea>
-                </div>
-                <button type="submit" className="btn btn-primary" disabled={posting}>
-                  <Send size={16} /> {posting ? 'Mengirim...' : 'Kirim Komentar'}
-                </button>
-              </form>
+              <div className="ui-panel">
+                <form onSubmit={handleCommentSubmit} className="mb-8">
+                  <div className="form-group">
+                    <textarea
+                      className="form-control"
+                      rows="4"
+                      placeholder="Tulis komentar Anda di sini..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      required
+                    ></textarea>
+                  </div>
+                  <button type="submit" className="btn btn-primary" disabled={posting}>
+                    <Send size={16} /> {posting ? 'Mengirim...' : 'Kirim Komentar'}
+                  </button>
+                </form>
+              </div>
             ) : (
-              <div style={{ background: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: 'var(--radius-md)', marginBottom: '2.5rem', textAlign: 'center', border: 'var(--glass-border)' }}>
-                <p>Silakan masuk untuk berpartisipasi dalam diskusi.</p>
+              <div className="ui-panel text-center">
+                <p className="mb-4 text-muted">Silakan login untuk memberikan komentar.</p>
+                <Link to="/medialog" className="btn btn-primary">Login / Register</Link>
               </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div className="d-flex flex-col" style={{ gap: '1.25rem' }}>
               {comments.map((c) => (
-                <div key={c.id} style={{ background: 'var(--bg-secondary)', padding: '1.25rem 1.5rem', borderRadius: 'var(--radius-md)', border: 'var(--glass-border)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                    <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1.05rem' }}>{c.user?.name || 'Pengguna'}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <div key={c.id} className="ui-panel">
+                  <div className="d-flex justify-between mb-4">
+                    <span className="font-bold text-lg">{c.user?.name || 'Pengguna'}</span>
+                    <div className="d-flex align-center" style={{ gap: '1rem' }}>
+                      <span className="text-sm text-muted">
                         {new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </span>
                       {(user?.id === c.user_id || user?.role === 'admin') && (
