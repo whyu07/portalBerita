@@ -9,6 +9,11 @@ export const LatestNews = ({ articles }) => {
     return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
+  const handleImageError = (e) => {
+    e.target.onerror = null;
+    e.target.src = 'https://placehold.co/600x400/1e293b/ffffff?text=404+Image+Not+Found';
+  };
+
   if (!articles || articles.length === 0) return null;
 
   return (
@@ -21,7 +26,7 @@ export const LatestNews = ({ articles }) => {
           <div key={article.id} className="news-list-item">
             {article.thumbnail_url && (
               <Link to={`/article/${article.slug}`}>
-                <img src={article.thumbnail_url} alt={article.title} className="news-list-img" />
+                <img src={article.thumbnail_url} alt={article.title} className="news-list-img" onError={handleImageError} />
               </Link>
             )}
             <div className="news-list-content">

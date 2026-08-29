@@ -9,6 +9,11 @@ export const HeroNews = ({ featured, latest }) => {
     return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
+  const handleImageError = (e) => {
+    e.target.onerror = null; // prevent infinite loop
+    e.target.src = 'https://placehold.co/600x400/1e293b/ffffff?text=404+Image+Not+Found';
+  };
+
   return (
     <div className="hero-grid">
       {/* Kolom Kiri: Main Headline */}
@@ -19,6 +24,7 @@ export const HeroNews = ({ featured, latest }) => {
               src={featured.thumbnail_url || 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&auto=format&fit=crop&q=80'}
               alt={featured.title}
               className="hero-main-img"
+              onError={handleImageError}
             />
             <div className="hero-overlay">
               {featured.category && (
@@ -49,7 +55,7 @@ export const HeroNews = ({ featured, latest }) => {
             <div key={article.id} className="news-list-item" style={{ padding: '0.75rem 0' }}>
               {article.thumbnail_url && (
                 <Link to={`/article/${article.slug}`}>
-                  <img src={article.thumbnail_url} alt={article.title} className="news-list-img" style={{ width: '100px', height: '70px' }} />
+                  <img src={article.thumbnail_url} alt={article.title} className="news-list-img" style={{ width: '100px', height: '70px' }} onError={handleImageError} />
                 </Link>
               )}
               <div className="news-list-content">

@@ -55,7 +55,7 @@ export const PopularNews = ({ period = '7d' }) => {
               {idx + 1}
             </div>
             <div>
-              <Link to={`/article/${article.slug}`} style={{ fontWeight: '600', fontSize: '1rem', color: 'var(--text-primary)', textDecoration: 'none' }} className="hover:text-indigo-600 transition-colors">
+              <Link to={`/article/${article.slug}`} style={{ fontWeight: '600', fontSize: '1rem', color: 'var(--text-primary)', textDecoration: 'none' }} className="popular-title hover:text-indigo-600 transition-colors">
                 {article.title}
               </Link>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>

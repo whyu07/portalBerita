@@ -42,7 +42,7 @@ export const Home = () => {
   // Derived data
   const featured = allArticles.find((a) => a.is_featured) || allArticles[0];
   const latestArticles = allArticles.filter(a => a.id !== featured?.id).slice(0, 4);
-  const moreLatestArticles = allArticles.slice(4, 9); // For the LatestNews section if we want separate from Hero sidebar
+  const moreLatestArticles = allArticles.filter(a => a.id !== featured?.id).slice(4, 9);
 
   if (loading) {
     return (
@@ -85,18 +85,18 @@ export const Home = () => {
         {/* 1. Hero Section (65/35) - Kiri Featured, Kanan Latest */}
         <HeroNews featured={featured} latest={latestArticles} />
 
-        {/* 2. Grid Utama (70/30) - Kiri Berita Terkini, Kanan Terpopuler */}
-        <div className="two-column-layout">
+        {/* 2. Grid Utama (70/30) - Kiri (Terbaru & Editor's Choice), Kanan (Terpopuler) */}
+        <div className="two-column-layout" style={{ marginBottom: '2rem' }}>
           <div>
-            <LatestNews articles={moreLatestArticles} />
+            {moreLatestArticles.length > 0 && (
+              <LatestNews articles={moreLatestArticles} />
+            )}
+            <EditorChoice />
           </div>
           <div>
             <PopularNews period="7d" />
           </div>
         </div>
-
-        {/* 3. Editor's Choice (Full width grid) */}
-        <EditorChoice />
 
         {/* 4. Category Sections */}
         {categories.slice(0, 5).map(cat => (

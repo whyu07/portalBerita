@@ -24,7 +24,7 @@ export const EditorChoice = () => {
   if (loading || articles.length === 0) return null;
 
   return (
-    <div style={{ marginBottom: '4rem', marginTop: '3rem' }}>
+    <div style={{ marginBottom: '4rem' }}>
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <h2 className="section-title">Editor's Choice</h2>
       </div>

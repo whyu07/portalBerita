@@ -21,12 +21,13 @@ go run cmd/main.go
 
 Server berjalan di `http://localhost:8080`.
 
-#### User Default Seeder
+#### Inisialisasi Data (Seeder)
 
-| Email | Password | Role |
-|---|---|---|
-| `admin@portalberita.com` | `admin123` | admin |
-| `budi@portalberita.com` | `author123` | author |
+Data awal (termasuk admin dan contoh artikel) hanya akan dibuat secara otomatis jika konfigurasi berikut terpenuhi:
+- `APP_ENV=development`
+- `SEED_DEMO_DATA=true`
+
+> **Peringatan**: Di production (`APP_ENV=production`), seed data akan diabaikan demi keamanan. Anda perlu membuat user admin pertama secara manual (misalnya via query SQL ke database) jika menggunakan database kosong.
 
 ### Frontend (React — Development)
 
@@ -101,19 +102,22 @@ Perubahan status dilakukan melalui tombol toggle di dashboard atau endpoint `PAT
 
 ## Environment Variables
 
-| Variable | Fungsi | Default (local) |
+| Variable | Fungsi | Default / Contoh |
 |---|---|---|
+| `APP_ENV` | Mode aplikasi (`development` / `production`) | `development` |
 | `PORT` | Port backend | `8080` |
-| `JWT_SECRET` | Secret penandatangan JWT | Fallback local (wajib diganti di production) |
+| `JWT_SECRET` | Secret penandatangan JWT | Wajib di-set pada production |
 | `JWT_EXPIRES_HOURS` | Masa berlaku JWT dalam jam | `24` |
-| `DB_HOST` | Host PostgreSQL | Kosong → SQLite fallback |
+| `SEED_DEMO_DATA` | Flag pembuat sample data (hanya dev) | `true` |
+| `DB_DRIVER` | Driver database | `sqlite` (dev) / `postgres` (prod) |
+| `DB_HOST` | Host PostgreSQL | `localhost` |
 | `DB_PORT` | Port PostgreSQL | `5432` |
-| `DB_USER` | User PostgreSQL | `postgres` (Docker) |
-| `DB_PASSWORD` | Password PostgreSQL | Sesuai Compose |
+| `DB_USER` | User PostgreSQL | `postgres` |
+| `DB_PASSWORD` | Password PostgreSQL | `postgres` |
 | `DB_NAME` | Nama database | `portal_berita` |
-| `DB_SSLMODE` | Mode SSL PostgreSQL | `disable` (local/Docker) |
+| `DB_SSLMODE` | Mode SSL PostgreSQL | `disable` |
 
-> **Peringatan**: Jangan menyimpan secret production di repository.
+> **Peringatan**: Jangan menyimpan secret production di repository. Pada production, `DB_DRIVER` wajib `postgres`, seluruh info koneksi DB wajib diisi, dan `JWT_SECRET` wajib memiliki panjang minimal 32 karakter.
 
 ---
 

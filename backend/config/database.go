@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"log"
-	"os"
 	"portal-berita-backend/models"
 	"time"
 
@@ -17,37 +16,30 @@ import (
 var DB *gorm.DB
 
 func InitDB() *gorm.DB {
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-	dbSSLMode := os.Getenv("DB_SSLMODE")
-
-	if dbSSLMode == "" {
-		dbSSLMode = "disable"
-	}
-
 	var database *gorm.DB
 	var err error
 
-	if dbHost != "" && dbUser != "" {
+	if Cfg.DBDriver == "postgres" {
 		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=Asia/Jakarta",
-			dbHost, dbUser, dbPassword, dbName, dbPort, dbSSLMode)
+			Cfg.DBHost, Cfg.DBUser, Cfg.DBPassword, Cfg.DBName, Cfg.DBPort, Cfg.DBSSLMode)
 
 		database, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
 			Logger: logger.Default.LogMode(logger.Info),
 		})
-	}
-
-	if err != nil || dbHost == "" {
-		log.Println("⚡ Using SQLite fallback DB (portal_berita.db)...")
+		
+		if err != nil {
+			log.Fatalf("❌ Failed to connect to PostgreSQL database: %v", err)
+		}
+	} else if Cfg.DBDriver == "sqlite" && Cfg.AppEnv == "development" {
+		log.Println("⚡ Using SQLite fallback DB (portal_berita.db) for development...")
 		database, err = gorm.Open(sqlite.Open("portal_berita.db"), &gorm.Config{
 			Logger: logger.Default.LogMode(logger.Info),
 		})
 		if err != nil {
-			log.Fatalf("Failed to connect to database: %v", err)
+			log.Fatalf("❌ Failed to connect to SQLite database: %v", err)
 		}
+	} else {
+		log.Fatalf("❌ Invalid DB_DRIVER '%s' or APP_ENV '%s'", Cfg.DBDriver, Cfg.AppEnv)
 	}
 
 	log.Println("✅ Database connection established.")
@@ -75,7 +67,13 @@ func InitDB() *gorm.DB {
 	}
 
 	DB = database
-	SeedData(DB)
+
+	if Cfg.AppEnv == "development" && Cfg.SeedDemoData {
+		SeedData(DB)
+	} else if Cfg.SeedDemoData {
+		log.Println("⚠️  Seed skipped (not in development mode).")
+	}
+
 	return DB
 }
 

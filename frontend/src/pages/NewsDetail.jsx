@@ -50,6 +50,11 @@ export const NewsDetail = () => {
     window.scrollTo({ top: 0 });
   }, [slug]);
 
+  const handleImageError = (e) => {
+    e.target.onerror = null;
+    e.target.src = 'https://placehold.co/1200x600/1e293b/ffffff?text=404+Image+Not+Found';
+  };
+
   // SEO: Update document head
   useEffect(() => {
     if (!article) return;
@@ -184,7 +189,7 @@ export const NewsDetail = () => {
 
           {article.thumbnail_url && (
             <div style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', marginBottom: '2.5rem', maxHeight: '500px', width: '100%' }}>
-              <img src={article.thumbnail_url} alt={article.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={article.thumbnail_url} alt={article.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={handleImageError} />
             </div>
           )}
 

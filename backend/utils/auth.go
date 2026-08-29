@@ -2,8 +2,7 @@ package utils
 
 import (
 	"errors"
-	"os"
-	"strconv"
+	"portal-berita-backend/config"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -17,22 +16,11 @@ type JWTClaims struct {
 }
 
 func getJWTSecret() []byte {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		secret = "super_secret_portal_berita_key_2026"
-	}
-	return []byte(secret)
+	return []byte(config.Cfg.JWTSecret)
 }
 
 func getJWTExpiryDuration() time.Duration {
-	hoursStr := os.Getenv("JWT_EXPIRES_HOURS")
-	if hoursStr != "" {
-		hours, err := strconv.Atoi(hoursStr)
-		if err == nil && hours > 0 {
-			return time.Duration(hours) * time.Hour
-		}
-	}
-	return 24 * time.Hour
+	return time.Duration(config.Cfg.JWTExpires) * time.Hour
 }
 
 func GenerateJWTToken(userID uint, email string, role string) (string, error) {

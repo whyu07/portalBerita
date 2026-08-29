@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
 	"portal-berita-backend/config"
 	"portal-berita-backend/routes"
 
@@ -13,19 +12,18 @@ func main() {
 	// Load .env if exists
 	_ = godotenv.Load()
 
+	// Load and Validate Configuration
+	config.LoadConfig()
+	config.ValidateConfig()
+
 	// Initialize Database
 	config.InitDB()
 
 	// Setup Router
 	r := routes.SetupRouter()
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	log.Printf("🚀 Server Portal Berita Backend running on port %s...", port)
-	if err := r.Run(":" + port); err != nil {
+	log.Printf("🚀 Server Portal Berita Backend running on port %s...", config.Cfg.Port)
+	if err := r.Run(":" + config.Cfg.Port); err != nil {
 		log.Fatalf("Failed to run server: %v", err)
 	}
 }

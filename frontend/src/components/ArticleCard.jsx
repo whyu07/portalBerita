@@ -6,16 +6,22 @@ export const ArticleCard = ({ article }) => {
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
+  const handleImageError = (e) => {
+    e.target.onerror = null;
+    e.target.src = 'https://placehold.co/600x400/1e293b/ffffff?text=404+Image+Not+Found';
   };
 
   return (
     <article className="card-news" id={`article-card-${article.id}`}>
       <Link to={`/article/${article.slug}`} className="card-img-wrapper">
         <img
-          src={article.thumbnail_url || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600&auto=format&fit=crop&q=80'}
+          src={article.thumbnail_url || 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&auto=format&fit=crop&q=80'}
           alt={article.title}
-          loading="lazy"
+          className="article-card-img"
+          onError={handleImageError}
         />
       </Link>
       <div className="card-body">
