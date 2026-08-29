@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Newspaper, Search, User, LogOut, Sun, Moon, LayoutDashboard } from 'lucide-react';
-import logo from '../../../image.png';
-import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import logo from '../../../../image.png';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 
 export const Navbar = () => {
   const { user, logout } = useAuth();

@@ -9,6 +9,8 @@ import { CategoryPage } from './pages/CategoryPage';
 import { Login } from './pages/Login';
 import TagPage from "./pages/TagPage";
 import IndexPage from './pages/IndexPage';
+import { PublicLayout } from './layouts/PublicLayout';
+import { DashboardLayout } from './layouts/DashboardLayout';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { NotFound } from './pages/NotFound';
 
@@ -37,26 +39,29 @@ export function App() {
     <AuthProvider>
       <Router>
         <div className="app-container">
-          <Navbar />
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/article/:slug" element={<NewsDetail />} />
-            <Route path="/category/:slug" element={<CategoryPage />} />
-            <Route path="/tag/:slug" element={<TagPage />} />
-            <Route path="/indeks" element={<IndexPage />} />
-            <Route path="/medialog" element={<Login />} />
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/article/:slug" element={<NewsDetail />} />
+              <Route path="/category/:slug" element={<CategoryPage />} />
+              <Route path="/tag/:slug" element={<TagPage />} />
+              <Route path="/indeks" element={<IndexPage />} />
+              <Route path="/medialog" element={<Login />} />
+              {/* Catch-all 404 route */}
+              <Route path="*" element={<NotFound />} />
+            </Route>
+
             <Route
               path="/ruasdash"
               element={
                 <ProtectedRoute allowedRoles={['admin', 'author']}>
-                  <AdminDashboard />
+                  <DashboardLayout>
+                    <AdminDashboard />
+                  </DashboardLayout>
                 </ProtectedRoute>
               }
             />
-            {/* Catch-all 404 route */}
-            <Route path="*" element={<NotFound />} />
           </Routes>
-          <Footer />
         </div>
       </Router>
     </AuthProvider>

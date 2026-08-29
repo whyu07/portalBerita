@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { Newspaper, Folder, Plus, Edit, Trash2, X, Eye, EyeOff, FileText, CheckCircle, Users, Flame } from 'lucide-react';
 import { AccountManagement } from '../components/AccountManagement';
+import { DashboardSidebar } from '../components/dashboard/DashboardSidebar';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -254,8 +255,10 @@ export const AdminDashboard = () => {
   };
 
   return (
-    <main className="main-content">
-      {/* Header */}
+    <>
+      <DashboardSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <main className="dashboard-content">
+        {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '2rem' }}>Dashboard Manajemen Content</h1>
@@ -303,81 +306,6 @@ export const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '1.5rem' }}>
-        <button
-          onClick={() => setActiveTab('articles')}
-          style={{
-            padding: '0.75rem 1.25rem',
-            background: 'transparent',
-            color: activeTab === 'articles' ? 'var(--accent-primary)' : 'var(--text-secondary)',
-            borderBottom: activeTab === 'articles' ? '2px solid var(--accent-primary)' : 'none',
-            fontWeight: 700,
-            fontSize: '1rem',
-          }}
-          id="tab-articles"
-        >
-          Daftar Artikel ({articles.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('categories')}
-          style={{
-            padding: '0.75rem 1.25rem',
-            background: 'transparent',
-            color: activeTab === 'categories' ? 'var(--accent-primary)' : 'var(--text-secondary)',
-            borderBottom: activeTab === 'categories' ? '2px solid var(--accent-primary)' : 'none',
-            fontWeight: 700,
-            fontSize: '1rem',
-          }}
-          id="tab-categories"
-        >
-          Kategori Berita ({categories.length})
-        </button>
-        {user?.role === 'admin' && (
-          <>
-            <button
-              onClick={() => setActiveTab('tags')}
-              style={{
-                padding: '0.75rem 1.25rem',
-                background: 'transparent',
-                color: activeTab === 'tags' ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                borderBottom: activeTab === 'tags' ? '2px solid var(--accent-primary)' : 'none',
-                fontWeight: 700,
-                fontSize: '1rem',
-              }}
-            >
-              Master Tag ({tags.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('popular')}
-              style={{
-                padding: '0.75rem 1.25rem',
-                background: 'transparent',
-                color: activeTab === 'popular' ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                borderBottom: activeTab === 'popular' ? '2px solid var(--accent-primary)' : 'none',
-                fontWeight: 700,
-                fontSize: '1rem',
-              }}
-            >
-              Popular News
-            </button>
-            <button
-              onClick={() => setActiveTab('accounts')}
-              style={{
-                padding: '0.75rem 1.25rem',
-                background: 'transparent',
-                color: activeTab === 'accounts' ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                borderBottom: activeTab === 'accounts' ? '2px solid var(--accent-primary)' : 'none',
-                fontWeight: 700,
-                fontSize: '1rem',
-              }}
-              id="tab-accounts"
-            >
-              Pengaturan Akun
-            </button>
-          </>
-        )}
-      </div>
 
       {/* Articles Table */}
       {activeTab === 'articles' && (
@@ -814,7 +742,9 @@ export const AdminDashboard = () => {
             </form>
           </div>
         </div>
-      )}
-    </main>
+        )}
+
+      </main>
+    </>
   );
 };

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Newspaper, Flame, Zap, ArrowRight, Github, Twitter, Linkedin } from 'lucide-react';
-import logo from '../../../image.png';
-import api from '../services/api';
+import logo from '../../../../image.png';
+import api from '../../services/api';
 
 export const Footer = () => {
   const [categories, setCategories] = useState([]);
