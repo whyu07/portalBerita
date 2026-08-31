@@ -136,8 +136,32 @@ export const NewsDetail = () => {
 
   if (loading) {
     return (
-      <main className="main-content" style={{ textAlign: 'center', padding: '5rem 0' }}>
-        Memuat detail artikel...
+      <main className="main-content">
+        <div className="two-column-layout">
+          <article>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem' }}>
+              <div style={{ height: '20px', width: '60px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)' }} className="skeleton" />
+              <div style={{ height: '20px', width: '80px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)' }} className="skeleton" />
+            </div>
+            
+            <div style={{ height: '40px', width: '80%', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', marginBottom: '1.5rem' }} className="skeleton" />
+            
+            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem' }}>
+              <div style={{ height: '20px', width: '100px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)' }} className="skeleton" />
+              <div style={{ height: '20px', width: '150px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)' }} className="skeleton" />
+              <div style={{ height: '20px', width: '80px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)' }} className="skeleton" />
+            </div>
+
+            <div style={{ height: '400px', width: '100%', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', marginBottom: '2.5rem' }} className="skeleton" />
+
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} style={{ height: '20px', width: '100%', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', marginBottom: '0.75rem' }} className="skeleton" />
+            ))}
+          </article>
+          <aside>
+            <div style={{ height: '300px', width: '100%', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)' }} className="skeleton" />
+          </aside>
+        </div>
       </main>
     );
   }
@@ -145,8 +169,10 @@ export const NewsDetail = () => {
   if (error) {
     return (
       <main className="main-content text-center p-4">
-        <h2 className="text-xl font-bold text-danger mb-4">{error}</h2>
-        <Link to="/" className="btn btn-primary mt-4">Kembali ke Beranda</Link>
+        <div style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--accent-danger)', padding: '2rem', borderRadius: 'var(--radius-lg)', display: 'inline-block' }}>
+          <h2 className="text-xl font-bold mb-4">{error}</h2>
+          <Link to="/" className="btn btn-primary mt-4">Kembali ke Beranda</Link>
+        </div>
       </main>
     );
   }
@@ -198,7 +224,7 @@ export const NewsDetail = () => {
 
           {/* Related News Section */}
           {!relatedLoading && relatedArticles.length > 0 && (
-            <section style={{ borderTop: '2px solid var(--color-border)', paddingTop: '2.5rem', marginTop: '3rem', marginBottom: '2rem' }}>
+            <section style={{ borderTop: '2px solid var(--border-color)', paddingTop: '2.5rem', marginTop: '3rem', marginBottom: '2rem' }}>
               <h3 className="text-2xl font-bold mb-4">Berita Terkait</h3>
               <div className="d-flex flex-col" style={{ gap: '1rem' }}>
                 {relatedArticles.map((ra) => (
@@ -209,7 +235,7 @@ export const NewsDetail = () => {
           )}
 
           {/* Comment Section */}
-          <section style={{ borderTop: '2px solid var(--color-border)', paddingTop: '2.5rem' }}>
+          <section style={{ borderTop: '2px solid var(--border-color)', paddingTop: '2.5rem' }}>
             <h3 className="d-flex align-center text-2xl mb-4" style={{ gap: '0.5rem' }}>
               <MessageSquare className="text-primary" /> Komentar ({comments.length})
             </h3>
@@ -234,8 +260,7 @@ export const NewsDetail = () => {
               </div>
             ) : (
               <div className="ui-panel text-center">
-                <p className="mb-4 text-muted">Silakan login untuk memberikan komentar.</p>
-                <Link to="/medialog" className="btn btn-primary">Login / Register</Link>
+                <p className="text-muted" style={{ margin: 0 }}>Silakan login untuk memberikan komentar.</p>
               </div>
             )}
 

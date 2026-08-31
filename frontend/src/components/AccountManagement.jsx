@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Edit, Plus, X, Search, User, Trash2 } from 'lucide-react';
+import { Edit, Plus, Search, User, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from './common/Button';
+import { FormField } from './common/FormField';
+import { DataTable } from './dashboard/DataTable';
+import { ModalForm } from './dashboard/ModalForm';
+import { StatusBadge } from './dashboard/StatusBadge';
 
 export const AccountManagement = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [accounts, setAccounts] = useState([]);
-  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState('');
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -23,11 +31,13 @@ export const AccountManagement = () => {
 
   const fetchAccounts = async (searchQuery = '') => {
     setLoading(true);
+    setError(null);
     try {
       const res = await api.get(`/admin/users?limit=100&search=${encodeURIComponent(searchQuery)}`);
       setAccounts(res.data?.data || []);
     } catch (err) {
       console.error('Failed to load accounts:', err);
+      setError('Gagal memuat data akun. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }
@@ -49,7 +59,7 @@ export const AccountManagement = () => {
         name: acc.name,
         email: acc.email,
         role: acc.role,
-        password: '', // Password lama tidak ditampilkan, isi password baru opsional
+        password: '',
       });
     } else {
       setEditingAccount(null);
@@ -60,11 +70,14 @@ export const AccountManagement = () => {
         password: '',
       });
     }
+    setSubmitError(null);
     setShowModal(true);
   };
 
   const handleSaveAccount = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
+    setSubmitError(null);
     try {
       if (editingAccount) {
         await api.put(`/admin/users/${editingAccount.id}`, form);
@@ -80,7 +93,9 @@ export const AccountManagement = () => {
       setShowModal(false);
       fetchAccounts(search);
     } catch (err) {
-      alert(err.response?.data?.error || 'Gagal menyimpan akun');
+      setSubmitError(err.response?.data?.error || 'Gagal menyimpan akun');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -103,6 +118,49 @@ export const AccountManagement = () => {
     }
   };
 
+  const columns = [
+    {
+      header: 'Nama Pengguna',
+      accessor: 'name',
+      cell: (row) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ padding: '0.5rem', background: 'var(--bg-tertiary)', borderRadius: '50%' }}>
+            <User size={16} />
+          </div>
+          <strong>{row.name} {row.id === user.id && '(Anda)'}</strong>
+        </div>
+      )
+    },
+    { header: 'Email', accessor: 'email' },
+    {
+      header: 'Role',
+      accessor: 'role',
+      cell: (row) => (
+        <StatusBadge status={row.role === 'admin' ? 'breaking' : 'draft'} label={row.role.toUpperCase()} />
+      )
+    },
+    {
+      header: 'Bergabung Pada',
+      accessor: 'created_at',
+      cell: (row) => new Date(row.created_at).toLocaleDateString('id-ID')
+    },
+    {
+      header: 'Aksi',
+      cell: (row) => (
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <Button variant="outline" size="sm" onClick={() => handleOpenModal(row)} aria-label="Edit Akun">
+            <Edit size={14} />
+          </Button>
+          {row.role === 'author' && (
+            <Button variant="danger" size="sm" onClick={() => handleDeleteAccount(row.id)} aria-label="Hapus Akun Author">
+              <Trash2 size={14} />
+            </Button>
+          )}
+        </div>
+      )
+    }
+  ];
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
@@ -118,157 +176,71 @@ export const AccountManagement = () => {
               style={{ paddingLeft: '35px', marginBottom: 0 }}
             />
           </div>
-          <button type="submit" className="btn btn-outline btn-sm">Cari</button>
+          <Button type="submit" variant="outline">Cari</Button>
         </form>
-        <button onClick={() => handleOpenModal()} className="btn btn-primary" id="btn-admin-add-account">
-          <Plus size={16} /> Tambah Akun
-        </button>
+        <Button onClick={() => handleOpenModal()} variant="primary">
+          <Plus size={16} style={{ marginRight: '0.5rem' }} /> Tambah Akun
+        </Button>
       </div>
 
-      <div className="admin-table-wrapper">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Nama Pengguna</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Bergabung Pada</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>Memuat data akun...</td>
-              </tr>
-            ) : accounts.length === 0 ? (
-              <tr>
-                <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>Tidak ada akun ditemukan.</td>
-              </tr>
-            ) : (
-              accounts.map((acc) => (
-                <tr key={acc.id}>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div style={{ padding: '0.5rem', background: 'var(--bg-tertiary)', borderRadius: '50%' }}>
-                        <User size={16} />
-                      </div>
-                      <strong>{acc.name} {acc.id === user.id && '(Anda)'}</strong>
-                    </div>
-                  </td>
-                  <td>{acc.email}</td>
-                  <td>
-                    <span className="badge-category" style={{ 
-                        background: acc.role === 'admin' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(59, 130, 246, 0.15)', 
-                        color: acc.role === 'admin' ? '#ef4444' : '#3b82f6', 
-                        borderColor: 'transparent',
-                        textTransform: 'uppercase',
-                        fontSize: '0.75rem'
-                    }}>
-                      {acc.role}
-                    </span>
-                  </td>
-                  <td>{new Date(acc.created_at).toLocaleDateString('id-ID')}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => handleOpenModal(acc)} className="btn btn-outline btn-sm" title="Edit Akun">
-                        <Edit size={14} />
-                      </button>
-                      {acc.role === 'author' && (
-                        <button 
-                          onClick={() => handleDeleteAccount(acc.id)} 
-                          className="btn btn-outline btn-sm" 
-                          style={{ color: 'var(--accent-danger)', borderColor: 'var(--accent-danger)' }} 
-                          title="Hapus Akun Author"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        columns={columns}
+        data={accounts}
+        loading={loading}
+        error={error}
+        emptyTitle="Tidak ada akun"
+        emptyDescription="Belum ada akun yang terdaftar atau ditemukan."
+      />
 
-      {showModal && (
-        <div className="modal-backdrop">
-          <div className="modal-card" style={{ maxWidth: '450px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2>{editingAccount ? 'Edit Akun' : 'Tambah Akun Baru'}</h2>
-              <button onClick={() => setShowModal(false)} style={{ background: 'transparent', color: 'var(--text-secondary)' }}>
-                <X size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleSaveAccount}>
-              <div className="form-group">
-                <label>Nama Lengkap</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                />
-              </div>
+      <ModalForm
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={editingAccount ? 'Edit Akun' : 'Tambah Akun Baru'}
+        onSubmit={handleSaveAccount}
+        submitting={submitting}
+        submitLabel="Simpan Akun"
+        error={submitError}
+      >
+        <FormField
+          label="Nama Lengkap"
+          type="text"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          required
+        />
+        <FormField
+          label="Email"
+          type="email"
+          value={form.email}
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          required
+        />
+        <FormField
+          label="Role Pengguna"
+          type="select"
+          value={form.role}
+          onChange={(e) => setForm({ ...form, role: e.target.value })}
+          options={[
+            { label: 'Author (Penulis)', value: 'author' },
+            { label: 'Admin', value: 'admin' }
+          ]}
+          required
+        />
+        <FormField
+          label={editingAccount ? 'Password Baru (Opsional)' : 'Password'}
+          type="password"
+          value={form.password}
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
+          required={!editingAccount}
+          placeholder={editingAccount ? 'Kosongkan jika tidak ingin mengubah password' : 'Minimal 6 karakter'}
+        />
 
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  className="form-control"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Role Pengguna</label>
-                <select
-                  className="form-control"
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
-                  required
-                >
-                  <option value="author">Author (Penulis)</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>{editingAccount ? 'Password Baru (Opsional)' : 'Password'}</label>
-                <input
-                  type="password"
-                  className="form-control"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  minLength={6}
-                  required={!editingAccount}
-                  placeholder={editingAccount ? 'Kosongkan jika tidak ingin mengubah password' : 'Minimal 6 karakter'}
-                />
-              </div>
-              
-              {editingAccount && editingAccount.id === user.id && (form.password || form.role !== user.role) && (
-                <div style={{ background: 'rgba(245, 158, 11, 0.15)', padding: '0.75rem', borderRadius: '4px', color: '#f59e0b', fontSize: '0.85rem', marginBottom: '1rem' }}>
-                  <strong>Perhatian:</strong> Mengubah password atau role Anda sendiri akan membuat Anda keluar (logout) otomatis.
-                </div>
-              )}
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-                <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">
-                  Batal
-                </button>
-                <button type="submit" className="btn btn-primary" id="btn-save-account-modal">
-                  Simpan Akun
-                </button>
-              </div>
-            </form>
+        {editingAccount && editingAccount.id === user.id && (form.password || form.role !== user.role) && (
+          <div style={{ background: 'rgba(245, 158, 11, 0.15)', padding: '0.75rem', borderRadius: '4px', color: '#f59e0b', fontSize: '0.85rem', marginBottom: '1rem' }}>
+            <strong>Perhatian:</strong> Mengubah password atau role Anda sendiri akan membuat Anda keluar (logout) otomatis.
           </div>
-        </div>
-      )}
+        )}
+      </ModalForm>
     </div>
   );
 };

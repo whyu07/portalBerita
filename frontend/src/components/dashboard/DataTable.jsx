@@ -6,6 +6,7 @@ export const DataTable = ({
   columns = [],
   data = [],
   loading = false,
+  error = null,
   emptyTitle = 'Tidak ada data',
   emptyDescription = 'Belum ada data yang ditambahkan.',
   emptyActionLabel,
@@ -35,6 +36,15 @@ export const DataTable = ({
             ))}
           </tbody>
         </table>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`ui-panel text-center ${className}`} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid var(--accent-danger)' }}>
+        <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--accent-danger)' }}>Gagal Memuat Data</h3>
+        <p style={{ color: 'var(--accent-danger)' }}>{error}</p>
       </div>
     );
   }

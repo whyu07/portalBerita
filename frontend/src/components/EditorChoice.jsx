@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import { ArticleCard } from './ArticleCard';
+import { ArticleCard } from './news/ArticleCard';
 
 export const EditorChoice = () => {
   const [articles, setArticles] = useState([]);

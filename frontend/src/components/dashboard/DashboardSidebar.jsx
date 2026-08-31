@@ -15,7 +15,7 @@ export const DashboardSidebar = ({ activeTab, setActiveTab }) => {
 
   return (
     <aside className="dashboard-sidebar">
-      <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <img src={logo} alt="Portal Berita" style={{ height: '32px', width: 'auto' }} />
         <span style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--text-primary)' }}>Dashboard</span>
       </div>
@@ -64,7 +64,7 @@ export const DashboardSidebar = ({ activeTab, setActiveTab }) => {
         )}
       </nav>
 
-      <div style={{ padding: '1rem', borderTop: '1px solid var(--color-border)' }}>
+      <div style={{ padding: '1rem', borderTop: '1px solid var(--border-color)' }}>
         <div style={{ marginBottom: '1rem', padding: '0.5rem', background: 'var(--bg-primary)', borderRadius: 'var(--radius-sm)' }}>
           <div style={{ fontWeight: 600 }}>{user?.name}</div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'capitalize' }}>Role: {user?.role}</div>
@@ -73,7 +73,7 @@ export const DashboardSidebar = ({ activeTab, setActiveTab }) => {
         <Link to="/" className="btn btn-outline btn-sm" style={{ width: '100%', marginBottom: '0.5rem', justifyContent: 'center' }}>
           <ArrowLeft size={16} /> Ke Halaman Publik
         </Link>
-        <button onClick={handleLogout} className="btn btn-outline btn-sm" style={{ width: '100%', color: 'var(--color-danger)', borderColor: 'var(--color-danger)', justifyContent: 'center' }}>
+        <button onClick={handleLogout} className="btn btn-outline btn-sm" style={{ width: '100%', color: 'var(--accent-danger)', borderColor: 'var(--accent-danger)', justifyContent: 'center' }}>
           <LogOut size={16} /> Keluar
         </button>
       </div>

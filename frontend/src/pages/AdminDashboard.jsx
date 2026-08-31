@@ -23,6 +23,7 @@ export const AdminDashboard = () => {
   const [tags, setTags] = useState([]);
   const [popularArticles, setPopularArticles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Modal states
   const [showArticleModal, setShowArticleModal] = useState(false);
@@ -58,6 +59,7 @@ export const AdminDashboard = () => {
 
   const fetchData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [artRes, catRes, tagRes, popRes] = await Promise.all([
         api.get('/admin/articles?status=all&limit=100'),
@@ -71,6 +73,7 @@ export const AdminDashboard = () => {
       setPopularArticles(popRes.data?.data || []);
     } catch (err) {
       console.error('Failed to load admin data:', err);
+      setError('Gagal memuat data dashboard. Silakan coba muat ulang halaman.');
     } finally {
       setLoading(false);
     }
@@ -316,6 +319,7 @@ export const AdminDashboard = () => {
       {activeTab === 'articles' && (
         <DataTable
           loading={loading}
+          error={error}
           emptyTitle="Belum ada artikel"
           emptyDescription="Anda belum membuat artikel satupun."
           emptyActionLabel="Buat Artikel Pertama"
@@ -371,6 +375,7 @@ export const AdminDashboard = () => {
       {activeTab === 'categories' && (
         <DataTable
           loading={loading}
+          error={error}
           columns={[
             { header: 'Nama Kategori', cell: (row) => <strong>{row.name}</strong> },
             { header: 'Slug', cell: (row) => <code>{row.slug}</code> },
@@ -395,6 +400,7 @@ export const AdminDashboard = () => {
       {activeTab === 'tags' && user?.role === 'admin' && (
         <DataTable
           loading={loading}
+          error={error}
           columns={[
             { header: 'Nama Tag', cell: (row) => <strong>#{row.name}</strong> },
             { header: 'Slug', cell: (row) => <code>{row.slug}</code> },
@@ -418,6 +424,7 @@ export const AdminDashboard = () => {
       {activeTab === 'popular' && user?.role === 'admin' && (
         <DataTable
           loading={loading}
+          error={error}
           columns={[
             { header: 'Peringkat', cell: (row, idx) => <strong>#{popularArticles.indexOf(row) + 1}</strong> },
             { header: 'Judul Artikel', cell: (row) => <strong>{row.title}</strong> },

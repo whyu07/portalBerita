@@ -4,15 +4,15 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-bg);
-  color: var(--color-text);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   line-height: var(--line-height-normal);
   font-size: var(--text-base);
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  color: var(--color-text);
+  color: var(--text-primary);
   line-height: var(--line-height-tight);
   font-weight: 700;
   overflow-wrap: anywhere;
@@ -24,12 +24,12 @@ p {
 }
 
 a {
-  color: var(--color-primary);
+  color: var(--accent-primary);
   transition: color var(--transition-fast);
 }
 
 a:hover {
-  color: var(--color-primary-hover);
+  color: var(--accent-hover);
 }
 
 /* Container */
@@ -44,6 +44,6 @@ a:hover {
 
 /* Focus Outline for Accessibility */
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }

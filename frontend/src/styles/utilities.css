@@ -24,9 +24,9 @@
 .font-semibold { font-weight: 600 !important; }
 
 /* Text Colors */
-.text-primary { color: var(--color-primary) !important; }
-.text-muted { color: var(--color-text-muted) !important; }
-.text-danger { color: var(--color-danger) !important; }
+.text-primary { color: var(--accent-primary) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.text-danger { color: var(--accent-danger) !important; }
 
 /* Text Sizes */
 .text-sm { font-size: var(--text-sm) !important; }
