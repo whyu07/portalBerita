@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 
 import { BreakingTicker } from '../components/BreakingTicker';
 import { HeroNews } from '../components/HeroNews';
 import { LatestNews } from '../components/LatestNews';
 import { PopularNews } from '../components/PopularNews';
-import { CategorySection } from '../components/CategorySection';
-import { EditorChoice } from '../components/EditorChoice';
 import { ArticleCard } from '../components/news/ArticleCard';
 import { EmptyState } from '../components/common/EmptyState';
 import { Skeleton, CardSkeleton } from '../components/common/Skeleton';
 
 export const Home = () => {
   const [allArticles, setAllArticles] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchParams] = useSearchParams();
@@ -26,13 +23,9 @@ export const Home = () => {
       setLoading(true);
       setError(null);
       try {
-        const [artRes, catRes] = await Promise.all([
-          api.get(`/articles?search=${encodeURIComponent(searchQuery)}&limit=20`),
-          api.get('/categories')
-        ]);
+        const artRes = await api.get(`/articles?search=${encodeURIComponent(searchQuery)}&limit=20`);
 
         setAllArticles(artRes.data?.data || []);
-        setCategories(catRes.data || []);
       } catch (err) {
         console.error('Failed to load home data:', err);
         setError('Gagal memuat data halaman beranda.');
@@ -47,7 +40,9 @@ export const Home = () => {
   // Derived data
   const featured = allArticles.find((a) => a.is_featured) || allArticles[0];
   const latestArticles = allArticles.filter(a => a.id !== featured?.id).slice(0, 4);
-  const moreLatestArticles = allArticles.filter(a => a.id !== featured?.id).slice(4, 9);
+  const latestNewsArticles = allArticles
+    .filter(a => a.id !== featured?.id)
+    .slice(0, 8);
 
   if (error) {
     return (
@@ -119,23 +114,16 @@ export const Home = () => {
             {/* 1. Hero Section (65/35) - Kiri Featured, Kanan Latest */}
             <HeroNews featured={featured} latest={latestArticles} />
 
-            {/* 2. Grid Utama (70/30) - Kiri (Terbaru & Editor's Choice), Kanan (Terpopuler) */}
+            {/* 2. Grid Utama (70/30) - Latest News dan Trending/Popular News */}
             <div className="two-column-layout mb-8">
               <div>
-                {moreLatestArticles.length > 0 && (
-                  <LatestNews articles={moreLatestArticles} />
-                )}
-                <EditorChoice />
+                <LatestNews articles={latestNewsArticles} />
               </div>
               <div>
                 <PopularNews period="7d" />
               </div>
             </div>
 
-            {/* 4. Category Sections */}
-            {categories.slice(0, 5).map(cat => (
-              <CategorySection key={cat.id} category={cat} />
-            ))}
           </>
         )}
       </main>

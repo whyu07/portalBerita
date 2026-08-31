@@ -113,7 +113,7 @@ export default function IndexPage() {
   ];
 
   return (
-    <div className="container mt-4 mb-8">
+    <div className="page-container mt-4 mb-8">
       <header className="mb-8">
         <h1 className="text-4xl mb-2">Indeks Berita</h1>
         <p className="text-muted">

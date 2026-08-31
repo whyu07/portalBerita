@@ -1,7 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Eye } from 'lucide-react';
 import api from '../services/api';
+
+const PopularNewsLoading = () => (
+  <aside className="popular-news-panel" aria-labelledby="popular-news-heading">
+    <div className="popular-news-heading">
+      <h2 id="popular-news-heading">Terpopuler</h2>
+    </div>
+    <div className="popular-news-loading" aria-live="polite">
+      Memuat berita populer...
+    </div>
+  </aside>
+);
 
 export const PopularNews = ({ period = '7d' }) => {
   const [articles, setArticles] = useState([]);
@@ -9,67 +20,61 @@ export const PopularNews = ({ period = '7d' }) => {
 
   useEffect(() => {
     const fetchPopular = async () => {
+      setLoading(true);
+
       try {
         const res = await api.get(`/articles/popular?period=${period}&limit=5`);
-        setArticles(res.data.data || []);
+        setArticles(res.data?.data || []);
       } catch (err) {
-        console.error("Gagal mengambil berita populer:", err);
+        console.error('Gagal mengambil berita populer:', err);
+        setArticles([]);
       } finally {
         setLoading(false);
       }
     };
+
     fetchPopular();
   }, [period]);
 
-  if (loading) {
-    return (
-      <div style={{ background: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: 'var(--glass-border)' }}>
-        <h3 className="section-title" style={{ fontSize: '1.2rem', marginBottom: '1.5rem', width: '100%', borderBottom: '2px solid var(--accent-primary)' }}>
-          Terpopuler
-        </h3>
-        <p>Memuat...</p>
-      </div>
-    );
-  }
-
-  if (articles.length === 0) {
-    return (
-      <div style={{ background: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: 'var(--glass-border)' }}>
-        <h3 className="section-title" style={{ fontSize: '1.2rem', marginBottom: '1.5rem', width: '100%', borderBottom: '2px solid var(--accent-primary)' }}>
-          Terpopuler
-        </h3>
-        <p className="text-gray-500">Belum ada berita populer untuk periode ini.</p>
-      </div>
-    );
-  }
+  if (loading) return <PopularNewsLoading />;
 
   return (
-    <div style={{ background: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: 'var(--glass-border)' }}>
-      <h3 className="section-title" style={{ fontSize: '1.2rem', marginBottom: '1.5rem', width: '100%', borderBottom: '2px solid var(--accent-primary)' }}>
-        Terpopuler
-      </h3>
-      <div className="popular-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {articles.map((article, idx) => (
-          <div key={article.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-primary)', opacity: 0.5, lineHeight: 1 }}>
-              {idx + 1}
-            </div>
-            <div>
-              <Link to={`/article/${article.slug}`} style={{ fontWeight: '600', fontSize: '1rem', color: 'var(--text-primary)', textDecoration: 'none' }} className="popular-title hover:text-indigo-600 transition-colors">
-                {article.title}
-              </Link>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                {article.category && (
-                  <span style={{ color: 'var(--accent-primary)' }}>{article.category.name}</span>
-                )}
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <Eye size={14} /> {article.period_views}
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
+    <aside className="popular-news-panel" aria-labelledby="popular-news-heading">
+      <div className="popular-news-heading">
+        <h2 id="popular-news-heading">Terpopuler</h2>
       </div>
-    </div>
+
+      {articles.length === 0 ? (
+        <p className="popular-news-empty">Belum ada berita populer untuk periode ini.</p>
+      ) : (
+        <ol className="popular-news-list">
+          {articles.map((article, index) => (
+            <li key={article.id} className="popular-news-item">
+              <span className="popular-news-rank" aria-hidden="true">
+                {index + 1}
+              </span>
+              <div className="popular-news-content">
+                <Link to={`/article/${article.slug}`} className="popular-news-title">
+                  {article.title}
+                </Link>
+                <div className="popular-news-meta">
+                  {article.category?.slug ? (
+                    <Link to={`/category/${article.category.slug}`}>
+                      {article.category.name}
+                    </Link>
+                  ) : article.category?.name ? (
+                    <span>{article.category.name}</span>
+                  ) : null}
+                  <span className="popular-news-views">
+                    <Eye size={14} aria-hidden="true" />
+                    {article.period_views ?? article.views_count ?? 0}
+                  </span>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </aside>
   );
 };
