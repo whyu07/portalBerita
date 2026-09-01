@@ -37,11 +37,18 @@ export const Home = () => {
     fetchData();
   }, [searchQuery]);
 
-  // Derived data
-  const featured = allArticles.find((a) => a.is_featured) || allArticles[0];
-  const latestArticles = allArticles.filter(a => a.id !== featured?.id).slice(0, 4);
-  const latestNewsArticles = allArticles
-    .filter(a => a.id !== featured?.id)
+  // Public endpoint sudah mengurutkan published_at terbaru, tetapi sorting ini
+  // menjaga urutan tetap benar ketika ada data tanpa published_at.
+  const orderedArticles = [...allArticles].sort((first, second) => {
+    const firstDate = new Date(first.published_at || first.created_at).getTime() || 0;
+    const secondDate = new Date(second.published_at || second.created_at).getTime() || 0;
+
+    return secondDate - firstDate || Number(second.id) - Number(first.id);
+  });
+  const heroArticles = orderedArticles.slice(0, 5);
+  const heroArticleIds = new Set(heroArticles.map((article) => article.id));
+  const latestNewsArticles = orderedArticles
+    .filter((article) => !heroArticleIds.has(article.id))
     .slice(0, 14);
 
   if (error) {
@@ -93,11 +100,14 @@ export const Home = () => {
       <main className="main-content landing-page">
         {loading ? (
           <>
-            <div className="hero-grid mb-8">
-              <Skeleton style={{ height: '400px', borderRadius: 'var(--radius-lg)' }} />
-              <div>
-                <Skeleton style={{ height: '30px', width: '150px', marginBottom: '1rem' }} />
-                {[1,2,3,4].map(i => <Skeleton key={i} style={{ height: '80px', marginBottom: '0.75rem', borderRadius: 'var(--radius-sm)' }} />)}
+            <div className="hero-grid hero-grid--loading mb-8">
+              <Skeleton className="hero-skeleton-lead" />
+              <div className="hero-skeleton-side">
+                <Skeleton className="hero-skeleton-side-main" />
+                <div className="hero-skeleton-side-bottom">
+                  <Skeleton />
+                  <Skeleton />
+                </div>
               </div>
             </div>
             <div className="two-column-layout landing-content-layout mb-8">
@@ -111,8 +121,8 @@ export const Home = () => {
           </>
         ) : (
           <>
-            {/* 1. Hero Section (65/35) - Kiri Featured, Kanan Latest */}
-            <HeroNews featured={featured} latest={latestArticles} />
+            {/* 1. Empat berita utama terbaru dengan layout editorial Figma */}
+            <HeroNews articles={heroArticles} />
 
             {/* 2. Grid Utama (70/30) - Latest News dan Trending/Popular News */}
             <div className="two-column-layout landing-content-layout mb-8">

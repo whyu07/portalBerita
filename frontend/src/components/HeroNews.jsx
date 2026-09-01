@@ -1,52 +1,32 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Clock } from 'lucide-react';
 import { HeroCard } from './news/HeroCard';
-import { CategoryBadge } from './news/CategoryBadge';
 
-export const HeroNews = ({ featured, latest }) => {
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-  };
+export const HeroNews = ({ articles = [] }) => {
+  const heroArticles = articles.slice(0, 5);
 
-  const handleImageError = (e) => {
-    e.target.onerror = null;
-    e.target.src = 'https://placehold.co/600x400/1e293b/ffffff?text=404+Image+Not+Found';
-  };
+  if (heroArticles.length === 0) return null;
 
   return (
-    <div className="hero-grid">
-      {/* Kolom Kiri: Main Headline */}
-      {featured && <HeroCard article={featured} />}
+    <section className="hero-news-section" aria-labelledby="hero-news-heading">
+      <h2 id="hero-news-heading" className="sr-only">Berita Utama</h2>
 
-      {/* Kolom Kanan: Berita Terkini Sidebar */}
-      <div>
-        <div className="section-header-flex">
-          <h3 className="section-title">Berita Terkini</h3>
+      <div className={`hero-grid hero-grid--count-${heroArticles.length}`}>
+        <div className="hero-lead-column">
+          <HeroCard article={heroArticles[0]} variant="lead" />
+          {heroArticles[4] && <HeroCard article={heroArticles[4]} variant="teaser" />}
         </div>
-        <div className="news-list-vertical">
-          {latest && latest.map((article) => (
-            <div key={article.id} className="news-list-item" style={{ padding: '0.75rem 0' }}>
-              {article.thumbnail_url && (
-                <Link to={`/article/${article.slug}`}>
-                  <img src={article.thumbnail_url} alt={article.title} className="news-list-img" style={{ width: '100px', height: '70px' }} onError={handleImageError} />
-                </Link>
-              )}
-              <div className="news-list-content">
-                <CategoryBadge category={article.category} style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase' }} />
-                <h4 className="news-list-title" style={{ fontSize: '1rem', marginTop: '0.2rem' }}>
-                  <Link to={`/article/${article.slug}`}>{article.title}</Link>
-                </h4>
-                <div className="meta-text" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Clock size={12} /> {formatDate(article.created_at)}
-                </div>
-              </div>
+
+        {heroArticles.length > 1 && (
+          <div className="hero-side-grid">
+            <HeroCard article={heroArticles[1]} variant="side-feature" />
+
+            <div className="hero-side-bottom">
+              {heroArticles[2] && <HeroCard article={heroArticles[2]} variant="side-image" />}
+              {heroArticles[3] && <HeroCard article={heroArticles[3]} variant="side-text" />}
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
-    </div>
+    </section>
   );
 };
