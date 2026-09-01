@@ -77,7 +77,7 @@ const TextNewsCard = ({ article }) => (
 export const LatestNews = ({ articles = [] }) => {
   if (articles.length === 0) return null;
 
-  const visibleArticles = articles.slice(0, 8);
+  const visibleArticles = articles.slice(0, 14);
   const articleRows = [];
 
   for (let index = 0; index < visibleArticles.length; index += 2) {

@@ -42,7 +42,7 @@ export const Home = () => {
   const latestArticles = allArticles.filter(a => a.id !== featured?.id).slice(0, 4);
   const latestNewsArticles = allArticles
     .filter(a => a.id !== featured?.id)
-    .slice(0, 8);
+    .slice(0, 14);
 
   if (error) {
     return (
@@ -58,7 +58,7 @@ export const Home = () => {
   // If search query is active, render search results instead of complex homepage
   if (searchQuery) {
     return (
-      <main className="main-content">
+      <main className="main-content landing-page">
         <div className="ui-panel mb-8">
           <h2 className="text-2xl font-bold">Hasil pencarian untuk: <span className="text-primary">"{searchQuery}"</span></h2>
           <p className="text-muted mt-2">Ditemukan {allArticles.length} artikel</p>
@@ -90,7 +90,7 @@ export const Home = () => {
     <>
       <BreakingTicker />
       
-      <main className="main-content">
+      <main className="main-content landing-page">
         {loading ? (
           <>
             <div className="hero-grid mb-8">
@@ -100,7 +100,7 @@ export const Home = () => {
                 {[1,2,3,4].map(i => <Skeleton key={i} style={{ height: '80px', marginBottom: '0.75rem', borderRadius: 'var(--radius-sm)' }} />)}
               </div>
             </div>
-            <div className="two-column-layout mb-8">
+            <div className="two-column-layout landing-content-layout mb-8">
               <div className="news-grid">
                 {[1, 2, 3, 4].map(i => <CardSkeleton key={i} />)}
               </div>
@@ -115,7 +115,7 @@ export const Home = () => {
             <HeroNews featured={featured} latest={latestArticles} />
 
             {/* 2. Grid Utama (70/30) - Latest News dan Trending/Popular News */}
-            <div className="two-column-layout mb-8">
+            <div className="two-column-layout landing-content-layout mb-8">
               <div>
                 <LatestNews articles={latestNewsArticles} />
               </div>

@@ -26,14 +26,14 @@ export const Footer = () => {
           <div className="logo-brand" style={{ marginBottom: '1rem' }}>
             <img src={logo} alt="Portal Berita Logo" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
           </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: '320px' }}>
+          <p style={{ fontSize: '0.9rem', maxWidth: '320px' }}>
             Menyajikan berita terkini, akurat, dan terpercaya seputar teknologi, politik, ekonomi, dan olahraga di Indonesia maupun internasional.
           </p>
         </div>
 
         <div>
-          <h4 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Kategori Berita</h4>
-          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+          <h4 style={{ marginBottom: '1rem' }}>Kategori Berita</h4>
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem' }}>
             {categories.slice(0, 5).map(cat => (
               <li key={cat.id}><Link to={`/category/${cat.slug}`}>{cat.name}</Link></li>
             ))}
@@ -42,8 +42,8 @@ export const Footer = () => {
         </div>
 
         <div>
-          <h4 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Navigasi</h4>
-          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+          <h4 style={{ marginBottom: '1rem' }}>Navigasi</h4>
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem' }}>
             <li><Link to="/">Beranda Utama</Link></li>
             <li><Link to="/indeks">Indeks Berita</Link></li>
           </ul>

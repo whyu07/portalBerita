@@ -30,7 +30,7 @@ export const BreakingTicker = () => {
           <Flame size={12} style={{ display: 'inline', marginRight: '4px' }} />
           BREAKING NEWS
         </span>
-        <marquee scrollamount="5" style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
+        <marquee scrollamount="5" style={{ fontWeight: 500 }}>
           {articles.map((art) => (
             <span key={art.id} style={{ marginRight: '3rem' }}>
               <Link to={`/article/${art.slug}`} style={{ color: 'inherit', textDecoration: 'none' }} className="hover:text-accent-primary">

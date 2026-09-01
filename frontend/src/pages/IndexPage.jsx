@@ -113,8 +113,8 @@ export default function IndexPage() {
   ];
 
   return (
-    <div className="page-container mt-4 mb-8">
-      <header className="mb-8">
+    <main className="page-container index-page mt-4 mb-8">
+      <header className="index-page-header">
         <h1 className="text-4xl mb-2">Indeks Berita</h1>
         <p className="text-muted">
           {total} berita ditemukan
@@ -122,7 +122,9 @@ export default function IndexPage() {
       </header>
 
       {/* Filter Section */}
-      <FilterBar filters={filters} onReset={handleResetFilter} />
+      <div className="index-filter-wrapper">
+        <FilterBar filters={filters} onReset={handleResetFilter} />
+      </div>
 
       {error && (
         <div className="text-center p-4 text-danger" style={{ background: 'rgba(239,68,68,0.1)', borderRadius: 'var(--radius-lg)' }}>
@@ -143,7 +145,7 @@ export default function IndexPage() {
               onAction={handleResetFilter}
             />
           ) : (
-            <div className="news-grid">
+            <div className="news-grid index-results-grid">
               {articles.map((article) => (
                 <ArticleCard key={article.id} article={article} />
               ))}
@@ -157,6 +159,6 @@ export default function IndexPage() {
           />
         </>
       )}
-    </div>
+    </main>
   );
 }

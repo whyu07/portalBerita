@@ -17,15 +17,17 @@ export const ArticleCard = ({ article }) => {
   };
 
   return (
-    <article className="card-news" id={`article-card-${article.id}`}>
-      <Link to={`/article/${article.slug}`} className="card-img-wrapper">
-        <img
-          src={article.thumbnail_url || 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&auto=format&fit=crop&q=80'}
-          alt={article.title}
-          className="article-card-img"
-          onError={handleImageError}
-        />
-      </Link>
+    <article className={`card-news ${!article.thumbnail_url ? 'card-no-image' : ''}`} id={`article-card-${article.id}`}>
+      {article.thumbnail_url && (
+        <Link to={`/article/${article.slug}`} className="card-img-wrapper">
+          <img
+            src={article.thumbnail_url}
+            alt={article.title}
+            className="article-card-img"
+            onError={handleImageError}
+          />
+        </Link>
+      )}
       <div className="card-body">
         <div className="flex items-center space-x-2 mb-3">
           <CategoryBadge category={article.category} />
@@ -36,7 +38,9 @@ export const ArticleCard = ({ article }) => {
         <h3 className="card-title">
           <Link to={`/article/${article.slug}`}>{article.title}</Link>
         </h3>
-        <p className="card-summary">{article.summary || article.content?.substring(0, 120) + '...'}</p>
+        <p className="card-summary" style={!article.thumbnail_url ? { WebkitLineClamp: 'unset', display: 'block' } : {}}>
+          {article.summary || article.content?.substring(0, !article.thumbnail_url ? 300 : 120) + '...'}
+        </p>
         <div className="card-footer-meta">
           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <User size={14} /> {article.author?.name || 'Redaksi'}

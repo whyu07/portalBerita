@@ -9,7 +9,7 @@ export const Navbar = () => {
   const { user, logout } = useAuth();
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState('');
-  const [theme, setTheme] = useState(localStorage.getItem('portal_theme') || 'dark');
+  const [theme, setTheme] = useState(localStorage.getItem('portal_theme') || 'light');
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -43,7 +43,7 @@ export const Navbar = () => {
 
   return (
     <header className="navbar-sticky">
-      <div className="navbar-inner">
+      <div className="navbar-inner navbar-primary-row">
         <Link to="/" className="logo-brand">
           <img src={logo} alt="Portal Berita Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
         </Link>
@@ -59,12 +59,44 @@ export const Navbar = () => {
           />
         </form>
 
+        <div className="navbar-actions">
+          <button
+            onClick={toggleTheme}
+            className="btn btn-outline btn-sm"
+            title="Ganti Tema"
+            id="btn-toggle-theme"
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+
+          {user ? (
+            <div className="navbar-user-actions">
+              {(user.role === 'admin' || user.role === 'author') && (
+                <Link to="/ruasdash" className="btn btn-outline btn-sm" id="nav-admin-dashboard-link">
+                  <LayoutDashboard size={16} /> Admin
+                </Link>
+              )}
+              <div className="navbar-user-name">
+                {user.name}
+              </div>
+              <button onClick={logout} className="btn btn-outline btn-sm" title="Keluar" id="btn-nav-logout">
+                <LogOut size={16} />
+              </button>
+            </div>
+          ) : (
+            <div className="navbar-user-actions" />
+          )}
+        </div>
+      </div>
+
+      <nav className="navbar-category-row" aria-label="Navigasi utama">
         <ul className="nav-links">
           <li>
             <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
               Beranda
             </Link>
           </li>
+
 
           {categories.slice(0, 5).map((cat) => (
             <li key={cat.id}>
@@ -77,37 +109,7 @@ export const Navbar = () => {
             </li>
           ))}
         </ul>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <button
-            onClick={toggleTheme}
-            className="btn btn-outline btn-sm"
-            title="Ganti Tema"
-            id="btn-toggle-theme"
-          >
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-
-          {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              {(user.role === 'admin' || user.role === 'author') && (
-                <Link to="/ruasdash" className="btn btn-outline btn-sm" id="nav-admin-dashboard-link">
-                  <LayoutDashboard size={16} /> Admin
-                </Link>
-              )}
-              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent-primary)' }}>
-                {user.name}
-              </div>
-              <button onClick={logout} className="btn btn-outline btn-sm" title="Keluar" id="btn-nav-logout">
-                <LogOut size={16} />
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-            </div>
-          )}
-        </div>
-      </div>
+      </nav>
     </header>
   );
 };
