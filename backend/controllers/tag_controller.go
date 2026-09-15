@@ -86,7 +86,7 @@ func CreateTag(c *gin.Context) {
 	}
 
 	tag := models.Tag{
-		Name: req.Name,
+		Name: utils.SanitizePlainText(req.Name),
 		Slug: slug,
 	}
 
@@ -114,7 +114,7 @@ func UpdateTag(c *gin.Context) {
 		return
 	}
 
-	tag.Name = req.Name
+	tag.Name = utils.SanitizePlainText(req.Name)
 	// Note: We retain the old slug as requested by the plan "mempertahankan slug lama agar URL tidak rusak"
 
 	if err := config.DB.Save(&tag).Error; err != nil {

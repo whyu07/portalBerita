@@ -92,3 +92,21 @@ func IsHTMLContent(content string) bool {
 	return strings.Contains(content, "<p>") || strings.Contains(content, "<h") ||
 		strings.Contains(content, "<div") || strings.Contains(content, "<br")
 }
+
+// SanitizePlainText strips ALL HTML tags from text input.
+// Use this for fields that should never contain HTML (title, name, summary, comments, etc.).
+func SanitizePlainText(text string) string {
+	p := bluemonday.StrictPolicy()
+	sanitized := p.Sanitize(text)
+	// Trim leading/trailing whitespace that might remain after stripping tags
+	return strings.TrimSpace(sanitized)
+}
+
+// ValidateURL checks that a URL string uses only http:// or https:// schemes.
+// Returns true if the URL is valid and safe, or if the URL is empty (optional field).
+func ValidateURL(rawURL string) bool {
+	if rawURL == "" {
+		return true // empty is allowed for optional fields
+	}
+	return strings.HasPrefix(rawURL, "http://") || strings.HasPrefix(rawURL, "https://")
+}

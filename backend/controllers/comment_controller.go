@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"portal-berita-backend/config"
 	"portal-berita-backend/models"
+	"portal-berita-backend/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,7 +42,7 @@ func CreateComment(c *gin.Context) {
 	comment := models.Comment{
 		ArticleID: article.ID,
 		UserID:    userID,
-		Content:   req.Content,
+		Content:   utils.SanitizePlainText(req.Content),
 	}
 
 	if err := config.DB.Create(&comment).Error; err != nil {

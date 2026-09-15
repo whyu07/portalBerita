@@ -34,7 +34,7 @@ func Register(c *gin.Context) {
 	role := models.RoleAuthor
 
 	user := models.User{
-		Name:     req.Name,
+		Name:     utils.SanitizePlainText(req.Name),
 		Email:    req.Email,
 		Password: string(hashedPassword),
 		Role:     role,

@@ -184,28 +184,48 @@ func CreateArticle(c *gin.Context) {
 	// Sanitize HTML content
 	sanitizedContent := utils.SanitizeArticleContent(req.Content)
 
+	// Sanitize plain-text fields (strip all HTML tags)
+	sanitizedTitle := utils.SanitizePlainText(req.Title)
+	sanitizedSummary := utils.SanitizePlainText(req.Summary)
+	sanitizedMetaTitle := utils.SanitizePlainText(req.MetaTitle)
+	sanitizedMetaDesc := utils.SanitizePlainText(req.MetaDescription)
+
+	// Validate URL fields (only allow http/https)
+	if !utils.ValidateURL(req.ThumbnailURL) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "URL Thumbnail tidak valid. Hanya http:// atau https:// yang diizinkan."})
+		return
+	}
+	if !utils.ValidateURL(req.CanonicalURL) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Canonical URL tidak valid. Hanya http:// atau https:// yang diizinkan."})
+		return
+	}
+	if !utils.ValidateURL(req.OGImageURL) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "OG Image URL tidak valid. Hanya http:// atau https:// yang diizinkan."})
+		return
+	}
+
 	// Validate SEO field lengths
-	if len(req.MetaTitle) > 60 {
+	if len(sanitizedMetaTitle) > 60 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Meta Title maksimal 60 karakter"})
 		return
 	}
-	if len(req.MetaDescription) > 160 {
+	if len(sanitizedMetaDesc) > 160 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Meta Description maksimal 160 karakter"})
 		return
 	}
 
 	article := models.Article{
-		Title:           req.Title,
+		Title:           sanitizedTitle,
 		Slug:            slug,
-		Summary:         req.Summary,
+		Summary:         sanitizedSummary,
 		Content:         sanitizedContent,
 		ThumbnailURL:    req.ThumbnailURL,
 		CategoryID:      req.CategoryID,
 		AuthorID:        authorID,
 		IsFeatured:      req.IsFeatured,
 		Tags:            tags,
-		MetaTitle:       req.MetaTitle,
-		MetaDescription: req.MetaDescription,
+		MetaTitle:       sanitizedMetaTitle,
+		MetaDescription: sanitizedMetaDesc,
 		CanonicalURL:    req.CanonicalURL,
 		OGImageURL:      req.OGImageURL,
 	}
@@ -263,23 +283,37 @@ func UpdateArticle(c *gin.Context) {
 	}
 
 	// Sanitize HTML content
-	article.Title = req.Title
-	article.Summary = req.Summary
+	article.Title = utils.SanitizePlainText(req.Title)
+	article.Summary = utils.SanitizePlainText(req.Summary)
 	article.Content = utils.SanitizeArticleContent(req.Content)
 	article.ThumbnailURL = req.ThumbnailURL
 	article.CategoryID = req.CategoryID
 	article.IsFeatured = req.IsFeatured
-	article.MetaTitle = req.MetaTitle
-	article.MetaDescription = req.MetaDescription
+	article.MetaTitle = utils.SanitizePlainText(req.MetaTitle)
+	article.MetaDescription = utils.SanitizePlainText(req.MetaDescription)
 	article.CanonicalURL = req.CanonicalURL
 	article.OGImageURL = req.OGImageURL
 
+	// Validate URL fields
+	if !utils.ValidateURL(req.ThumbnailURL) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "URL Thumbnail tidak valid. Hanya http:// atau https:// yang diizinkan."})
+		return
+	}
+	if !utils.ValidateURL(req.CanonicalURL) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Canonical URL tidak valid. Hanya http:// atau https:// yang diizinkan."})
+		return
+	}
+	if !utils.ValidateURL(req.OGImageURL) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "OG Image URL tidak valid. Hanya http:// atau https:// yang diizinkan."})
+		return
+	}
+
 	// Validate SEO field lengths
-	if len(req.MetaTitle) > 60 {
+	if len(article.MetaTitle) > 60 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Meta Title maksimal 60 karakter"})
 		return
 	}
-	if len(req.MetaDescription) > 160 {
+	if len(article.MetaDescription) > 160 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Meta Description maksimal 160 karakter"})
 		return
 	}

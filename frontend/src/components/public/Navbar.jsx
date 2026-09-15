@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Newspaper, Search, User, LogOut, Sun, Moon, LayoutDashboard } from 'lucide-react';
+import { Newspaper, Search, User, LogOut, LayoutDashboard } from 'lucide-react';
 import logo from '../../../../image.png';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -9,14 +9,8 @@ export const Navbar = () => {
   const { user, logout } = useAuth();
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState('');
-  const [theme, setTheme] = useState(localStorage.getItem('portal_theme') || 'light');
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('portal_theme', theme);
-  }, [theme]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -29,10 +23,6 @@ export const Navbar = () => {
     };
     fetchCategories();
   }, []);
-
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -60,15 +50,6 @@ export const Navbar = () => {
         </form>
 
         <div className="navbar-actions">
-          <button
-            onClick={toggleTheme}
-            className="btn btn-outline btn-sm"
-            title="Ganti Tema"
-            id="btn-toggle-theme"
-          >
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-
           {user ? (
             <div className="navbar-user-actions">
               {(user.role === 'admin' || user.role === 'author') && (

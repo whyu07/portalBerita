@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"portal-berita-backend/config"
 	"portal-berita-backend/models"
+	"portal-berita-backend/utils"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -34,9 +35,9 @@ func CreateCategory(c *gin.Context) {
 	slug := createSlug(req.Name)
 
 	category := models.Category{
-		Name:        req.Name,
+		Name:        utils.SanitizePlainText(req.Name),
 		Slug:        slug,
-		Description: req.Description,
+		Description: utils.SanitizePlainText(req.Description),
 	}
 
 	if err := config.DB.Create(&category).Error; err != nil {
@@ -61,9 +62,9 @@ func UpdateCategory(c *gin.Context) {
 		return
 	}
 
-	category.Name = req.Name
+	category.Name = utils.SanitizePlainText(req.Name)
 	category.Slug = createSlug(req.Name)
-	category.Description = req.Description
+	category.Description = utils.SanitizePlainText(req.Description)
 
 	if err := config.DB.Save(&category).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui kategori"})

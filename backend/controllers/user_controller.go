@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"portal-berita-backend/config"
 	"portal-berita-backend/models"
+	"portal-berita-backend/utils"
 	"strconv"
 	"strings"
 
@@ -72,7 +73,7 @@ func CreateManagedUser(c *gin.Context) {
 	}
 
 	user := models.User{
-		Name:     req.Name,
+		Name:     utils.SanitizePlainText(req.Name),
 		Email:    req.Email,
 		Password: string(hashedPassword),
 		Role:     req.Role,
@@ -126,7 +127,7 @@ func UpdateManagedUser(c *gin.Context) {
 		}
 	}
 
-	user.Name = req.Name
+	user.Name = utils.SanitizePlainText(req.Name)
 	user.Email = req.Email
 	user.Role = req.Role
 
