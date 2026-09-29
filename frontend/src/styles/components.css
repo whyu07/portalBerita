@@ -158,9 +158,16 @@
 
 /* Panels / Surface Containers */
 .ui-panel {
-  background: var(--bg-secondary);
+  background: var(--bg-card);
   padding: var(--space-6);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
   margin-bottom: var(--space-8);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.ui-panel:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }

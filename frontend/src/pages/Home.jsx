@@ -6,6 +6,7 @@ import { BreakingTicker } from '../components/BreakingTicker';
 import { HeroNews } from '../components/HeroNews';
 import { LatestNews } from '../components/LatestNews';
 import { PopularNews } from '../components/PopularNews';
+import { VillageNews } from '../components/VillageNews';
 import { ArticleCard } from '../components/news/ArticleCard';
 import { EmptyState } from '../components/common/EmptyState';
 import { Skeleton, CardSkeleton } from '../components/common/Skeleton';
@@ -23,7 +24,8 @@ export const Home = () => {
       setLoading(true);
       setError(null);
       try {
-        const artRes = await api.get(`/articles?search=${encodeURIComponent(searchQuery)}&limit=20`);
+        // Ambil lebih banyak artikel agar TERBARU punya cukup item setelah 5 hero dipisah
+        const artRes = await api.get(`/articles?search=${encodeURIComponent(searchQuery)}&limit=50`);
 
         setAllArticles(artRes.data?.data || []);
       } catch (err) {
@@ -37,19 +39,24 @@ export const Home = () => {
     fetchData();
   }, [searchQuery]);
 
-  // Public endpoint sudah mengurutkan published_at terbaru, tetapi sorting ini
-  // menjaga urutan tetap benar ketika ada data tanpa published_at.
+  // Urutkan berdasarkan published_at terbaru, fallback ke created_at
   const orderedArticles = [...allArticles].sort((first, second) => {
     const firstDate = new Date(first.published_at || first.created_at).getTime() || 0;
     const secondDate = new Date(second.published_at || second.created_at).getTime() || 0;
 
     return secondDate - firstDate || Number(second.id) - Number(first.id);
   });
+
+  // Hero: 5 artikel terbaru
   const heroArticles = orderedArticles.slice(0, 5);
-  const heroArticleIds = new Set(heroArticles.map((article) => article.id));
+
+  // TERBARU: mulai dari artikel ke-2 (index 1) — hanya kecualikan lead article (index 0).
+  // Artikel yang muncul di hero side grid boleh tampil juga di TERBARU,
+  // seperti portal berita pada umumnya.
+  const leadArticleId = orderedArticles[0]?.id;
   const latestNewsArticles = orderedArticles
-    .filter((article) => !heroArticleIds.has(article.id))
-    .slice(0, 14);
+    .filter((article) => article.id !== leadArticleId)
+    .slice(0, 10);
 
   if (error) {
     return (
@@ -131,6 +138,7 @@ export const Home = () => {
               </div>
               <div>
                 <PopularNews period="7d" />
+                <VillageNews />
               </div>
             </div>
 

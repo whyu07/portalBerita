@@ -5,11 +5,11 @@
 @import url('./styles/components.css');
 
 :root {
-  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Color Palette - Vibrant Light Mode First / Modern News theme */
-  --bg-primary: #f4f1e8;
+  --bg-primary: #f8f9fa;
   --bg-secondary: #ffffff;
   --bg-card: #ffffff;
   --bg-card-hover: #f1f5f9;
@@ -38,7 +38,7 @@
   --glass-blur: blur(16px);
 
   /* Typography extensions */
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-serif: 'Merriweather', 'Lora', serif;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
@@ -259,6 +259,7 @@ button {
   background: var(--bg-card);
   border: var(--glass-border);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1019,12 +1020,22 @@ button {
   display: flex;
   gap: 1rem;
   align-items: flex-start;
-  padding: 1rem 0;
-  border-bottom: 1px dashed var(--border-color);
+  padding: 1rem;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.news-list-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .news-list-item:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .news-list-img {
@@ -2150,4 +2161,143 @@ button {
   .hero-card__side-feature-link {
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   }
+}
+
+/* Village News / Jurnal Desa */
+.village-news-panel {
+  margin-top: 2rem;
+}
+.village-news-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.village-news-icon {
+  width: 12px;
+  height: 18px;
+  background-color: #000;
+  border-radius: 2px;
+}
+.village-news-heading h2 {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #000;
+  margin: 0;
+}
+.village-news-loading, .village-news-empty {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+.village-news-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.village-news-lead-img-wrapper {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.village-news-lead-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+.village-news-lead-img-wrapper:hover img {
+  transform: scale(1.05);
+}
+.village-news-lead-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4rem 1rem 1rem 1rem;
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0) 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.village-news-lead-title {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.4;
+}
+.village-news-lead-title:hover {
+  text-decoration: underline;
+}
+.village-news-lead-date {
+  color: #d1d5db;
+  font-size: 0.8rem;
+}
+.village-news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.village-news-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.village-news-item-img-link {
+  flex-shrink: 0;
+  width: 90px;
+  height: 90px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.village-news-item-img-link img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+.village-news-item-img-link:hover img {
+  transform: scale(1.05);
+}
+.village-news-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-top: 0.25rem;
+}
+.village-news-item-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.35;
+}
+.village-news-item-title:hover {
+  color: var(--primary-color);
+}
+.village-news-item-date {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Reading Progress Bar */
+.reading-progress-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: transparent;
+  z-index: 9999;
+}
+
+.reading-progress-bar {
+  height: 100%;
+  background-color: var(--accent-danger);
+  transition: width 0.15s ease-out;
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
 }

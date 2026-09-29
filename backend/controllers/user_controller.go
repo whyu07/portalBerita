@@ -55,7 +55,16 @@ func ListManagedUsers(c *gin.Context) {
 func CreateManagedUser(c *gin.Context) {
 	var req models.CreateManagedUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		errStr := err.Error()
+		if strings.Contains(errStr, "Password") || strings.Contains(errStr, "min") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Password minimal 6 karakter"})
+			return
+		}
+		if strings.Contains(errStr, "Email") || strings.Contains(errStr, "email") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Format email tidak valid"})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Data yang dikirim tidak valid"})
 		return
 	}
 
@@ -92,7 +101,16 @@ func UpdateManagedUser(c *gin.Context) {
 	id := c.Param("id")
 	var req models.UpdateManagedUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		errStr := err.Error()
+		if strings.Contains(errStr, "Password") || strings.Contains(errStr, "min") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Password baru minimal 6 karakter"})
+			return
+		}
+		if strings.Contains(errStr, "Email") || strings.Contains(errStr, "email") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Format email tidak valid"})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Data yang dikirim tidak valid"})
 		return
 	}
 

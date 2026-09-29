@@ -16,8 +16,13 @@ export const Login = () => {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
-      navigate('/');
+      const data = await login(email, password);
+      const role = data?.user?.role;
+      if (role === 'admin' || role === 'author') {
+        navigate('/ruasdash');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Email atau password salah');
     } finally {

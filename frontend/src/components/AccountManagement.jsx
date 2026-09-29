@@ -76,19 +76,42 @@ export const AccountManagement = () => {
 
   const handleSaveAccount = async (e) => {
     e.preventDefault();
-    setSubmitting(true);
     setSubmitError(null);
+
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim(),
+      role: form.role,
+    };
+
+    if (editingAccount) {
+      if (form.password) {
+        if (form.password.length < 6) {
+          setSubmitError('Password baru minimal 6 karakter');
+          return;
+        }
+        payload.password = form.password;
+      }
+    } else {
+      if (!form.password || form.password.length < 6) {
+        setSubmitError('Password wajib diisi minimal 6 karakter');
+        return;
+      }
+      payload.password = form.password;
+    }
+
+    setSubmitting(true);
     try {
       if (editingAccount) {
-        await api.put(`/admin/users/${editingAccount.id}`, form);
-        if (editingAccount.id === user.id && (form.password || form.role !== user.role)) {
+        await api.put(`/admin/users/${editingAccount.id}`, payload);
+        if (editingAccount.id === user.id && (payload.password || payload.role !== user.role)) {
             // Force logout if self updated password or role
             logout();
             navigate('/medialog');
             return;
         }
       } else {
-        await api.post('/admin/users', form);
+        await api.post('/admin/users', payload);
       }
       setShowModal(false);
       fetchAccounts(search);
@@ -232,6 +255,8 @@ export const AccountManagement = () => {
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
           required={!editingAccount}
+          minLength={6}
+          autoComplete="new-password"
           placeholder={editingAccount ? 'Kosongkan jika tidak ingin mengubah password' : 'Minimal 6 karakter'}
         />
 

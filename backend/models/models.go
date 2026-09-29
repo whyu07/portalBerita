@@ -150,7 +150,7 @@ type UpdateManagedUserRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 	Role     Role   `json:"role" binding:"required,oneof=admin author"`
-	Password string `json:"password" binding:"omitempty,min=6"`
+	Password string `json:"password,omitempty" binding:"omitempty,min=6"`
 }
 
 type ManagedUsersResponse struct {

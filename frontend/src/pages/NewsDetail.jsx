@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Clock, Eye, User, MessageSquare, Send, Trash2 } from 'lucide-react';
+import { Clock, User, MessageSquare, Send, Trash2 } from 'lucide-react';
 import { ArticleContent } from '../components/ArticleContent';
 import { Breadcrumb } from '../components/Breadcrumb';
 import { RelatedCard } from '../components/news/RelatedCard';
@@ -20,6 +20,22 @@ export const NewsDetail = () => {
   const [relatedLoading, setRelatedLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalScroll = document.documentElement.scrollTop || document.body.scrollTop;
+      const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      
+      if (windowHeight === 0) return;
+      
+      const scroll = totalScroll / windowHeight;
+      setScrollProgress(scroll * 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -190,8 +206,15 @@ export const NewsDetail = () => {
   breadcrumbItems.push({ label: article.title });
 
   return (
-    <main className="main-content">
-      <div className="two-column-layout">
+    <>
+      <div className="reading-progress-container">
+        <div 
+          className="reading-progress-bar" 
+          style={{ width: `${scrollProgress}%` }}
+        ></div>
+      </div>
+      <main className="main-content">
+        <div className="two-column-layout">
         
         {/* Kolom Kiri: Artikel & Komentar */}
         <article>
@@ -207,9 +230,6 @@ export const NewsDetail = () => {
               </span>
               <span className="d-flex align-center" style={{ gap: '0.5rem' }}>
                 <Clock size={16} /> {new Date(article.published_at || article.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-              </span>
-              <span className="d-flex align-center" style={{ gap: '0.5rem' }}>
-                <Eye size={16} /> {article.views_count || 0} Dilihat
               </span>
             </div>
           </header>
@@ -305,5 +325,6 @@ export const NewsDetail = () => {
         </aside>
       </div>
     </main>
+    </>
   );
 };

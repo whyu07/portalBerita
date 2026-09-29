@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"net/http"
+	"portal-berita-backend/config"
 	"portal-berita-backend/controllers"
 	"portal-berita-backend/middlewares"
 	"portal-berita-backend/models"
@@ -14,9 +16,19 @@ func SetupRouter() *gin.Engine {
 
 	// CORS Config
 	configCors := cors.DefaultConfig()
-	configCors.AllowAllOrigins = true
+	configCors.AllowAllOrigins = false
+	configCors.AllowOrigins = config.Cfg.CORSOrigins
 	configCors.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	r.Use(cors.New(configCors))
+
+	r.GET("/health", func(c *gin.Context) {
+		sqlDB, err := config.DB.DB()
+		if err != nil || sqlDB.Ping() != nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "error"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
 
 	api := r.Group("/api/v1")
 	{
@@ -35,18 +47,18 @@ func SetupRouter() *gin.Engine {
 		api.GET("/tags", controllers.GetTags)
 		api.GET("/tags/:slug/articles", controllers.GetArticlesByTag)
 
-		// Categories Admin
+		// Categories Admin + Author
 		categoriesAdmin := api.Group("/categories")
-		categoriesAdmin.Use(middlewares.JWTAuthMiddleware(), middlewares.RequireRole(models.RoleAdmin))
+		categoriesAdmin.Use(middlewares.JWTAuthMiddleware(), middlewares.RequireRole(models.RoleAdmin, models.RoleAuthor))
 		{
 			categoriesAdmin.POST("", controllers.CreateCategory)
 			categoriesAdmin.PUT("/:id", controllers.UpdateCategory)
 			categoriesAdmin.DELETE("/:id", controllers.DeleteCategory)
 		}
 
-		// Tags Admin
+		// Tags Admin + Author
 		tagsAdmin := api.Group("/admin/tags")
-		tagsAdmin.Use(middlewares.JWTAuthMiddleware(), middlewares.RequireRole(models.RoleAdmin))
+		tagsAdmin.Use(middlewares.JWTAuthMiddleware(), middlewares.RequireRole(models.RoleAdmin, models.RoleAuthor))
 		{
 			tagsAdmin.POST("", controllers.CreateTag)
 			tagsAdmin.PUT("/:id", controllers.UpdateTag)
@@ -69,22 +81,14 @@ func SetupRouter() *gin.Engine {
 			articlesAdmin.DELETE("/:id", controllers.DeleteArticle)
 		}
 
-		// Managed Articles (Dashboard)
+		// Managed Articles (Dashboard) - Admin + Author
 		managedArticles := api.Group("/admin/articles")
 		managedArticles.Use(middlewares.JWTAuthMiddleware(), middlewares.RequireRole(models.RoleAdmin, models.RoleAuthor))
 		{
 			managedArticles.GET("", controllers.GetManagedArticles)
+			managedArticles.GET("/popular", controllers.GetPopularArticles)
 			managedArticles.PATCH("/:id/status", controllers.UpdateArticleStatus)
-		}
-
-		// Breaking News Admin
-		breakingAdmin := api.Group("/admin/articles")
-		breakingAdmin.Use(middlewares.JWTAuthMiddleware(), middlewares.RequireRole(models.RoleAdmin))
-		{
-			breakingAdmin.PATCH("/:id/breaking", controllers.ToggleBreakingNews)
-			// Admin can also view popular articles internally if needed, but GetPopularArticles can just be public. 
-			// If we want a separate admin route we can add it here.
-			breakingAdmin.GET("/popular", controllers.GetPopularArticles)
+			managedArticles.PATCH("/:id/breaking", controllers.ToggleBreakingNews)
 		}
 
 		// Comments Routes

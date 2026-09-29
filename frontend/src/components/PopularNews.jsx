@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye } from 'lucide-react';
 import api from '../services/api';
 
 const PopularNewsLoading = () => (
@@ -65,10 +64,6 @@ export const PopularNews = ({ period = '7d' }) => {
                   ) : article.category?.name ? (
                     <span>{article.category.name}</span>
                   ) : null}
-                  <span className="popular-news-views">
-                    <Eye size={14} aria-hidden="true" />
-                    {article.period_views ?? article.views_count ?? 0}
-                  </span>
                 </div>
               </div>
             </li>

@@ -2,7 +2,8 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FileText, Folder, Hash, Star, Users, LogOut, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import logo from '../../../../image.png';
+
+const logo = '/image.png';
 
 export const DashboardSidebar = ({ activeTab, setActiveTab }) => {
   const { user, logout } = useAuth();
@@ -37,7 +38,7 @@ export const DashboardSidebar = ({ activeTab, setActiveTab }) => {
           <Folder size={18} /> Kategori Berita
         </button>
 
-        {user?.role === 'admin' && (
+        {(user?.role === 'admin' || user?.role === 'author') && (
           <>
             <button 
               onClick={() => setActiveTab('tags')}
@@ -53,14 +54,17 @@ export const DashboardSidebar = ({ activeTab, setActiveTab }) => {
             >
               <Star size={18} /> Popular News
             </button>
-            <button 
-              onClick={() => setActiveTab('accounts')}
-              className={`btn ${activeTab === 'accounts' ? 'btn-primary' : 'btn-ghost'}`}
-              style={{ justifyContent: 'flex-start', width: '100%', marginBottom: '0.5rem' }}
-            >
-              <Users size={18} /> Pengaturan Akun
-            </button>
           </>
+        )}
+
+        {user?.role === 'admin' && (
+          <button 
+            onClick={() => setActiveTab('accounts')}
+            className={`btn ${activeTab === 'accounts' ? 'btn-primary' : 'btn-ghost'}`}
+            style={{ justifyContent: 'flex-start', width: '100%', marginBottom: '0.5rem' }}
+          >
+            <Users size={18} /> Pengaturan Akun
+          </button>
         )}
       </nav>
 

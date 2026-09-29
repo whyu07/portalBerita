@@ -1,9 +1,12 @@
 package config
 
 import (
-	"fmt"
+	"errors"
 	"log"
+	"net"
+	"net/url"
 	"portal-berita-backend/models"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -20,13 +23,18 @@ func InitDB() *gorm.DB {
 	var err error
 
 	if Cfg.DBDriver == "postgres" {
-		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=Asia/Jakarta",
-			Cfg.DBHost, Cfg.DBUser, Cfg.DBPassword, Cfg.DBName, Cfg.DBPort, Cfg.DBSSLMode)
+		dsn := (&url.URL{
+			Scheme:   "postgres",
+			User:     url.UserPassword(Cfg.DBUser, Cfg.DBPassword),
+			Host:     net.JoinHostPort(Cfg.DBHost, Cfg.DBPort),
+			Path:     "/" + Cfg.DBName,
+			RawQuery: url.Values{"sslmode": []string{Cfg.DBSSLMode}, "TimeZone": []string{"Asia/Jakarta"}}.Encode(),
+		}).String()
 
 		database, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
 			Logger: logger.Default.LogMode(logger.Info),
 		})
-		
+
 		if err != nil {
 			log.Fatalf("❌ Failed to connect to PostgreSQL database: %v", err)
 		}
@@ -68,6 +76,10 @@ func InitDB() *gorm.DB {
 
 	DB = database
 
+	if Cfg.BootstrapAdminEmail != "" {
+		BootstrapAdmin(DB)
+	}
+
 	if Cfg.AppEnv == "development" && Cfg.SeedDemoData {
 		SeedData(DB)
 	} else if Cfg.SeedDemoData {
@@ -75,6 +87,37 @@ func InitDB() *gorm.DB {
 	}
 
 	return DB
+}
+
+// BootstrapAdmin creates the first production administrator when explicitly configured.
+// It is idempotent, so restarting with the same values will not create duplicates.
+func BootstrapAdmin(db *gorm.DB) {
+	email := strings.TrimSpace(Cfg.BootstrapAdminEmail)
+	var existing models.User
+	err := db.Where("email = ?", email).First(&existing).Error
+	if err == nil {
+		log.Printf("ℹ️ Bootstrap admin already exists for %s.", email)
+		return
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		log.Fatalf("❌ Failed to check bootstrap admin: %v", err)
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(Cfg.BootstrapAdminPassword), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatalf("❌ Failed to hash bootstrap admin password: %v", err)
+	}
+
+	admin := models.User{
+		Name:     strings.TrimSpace(Cfg.BootstrapAdminName),
+		Email:    email,
+		Password: string(hashedPassword),
+		Role:     models.RoleAdmin,
+	}
+	if err := db.Create(&admin).Error; err != nil {
+		log.Fatalf("❌ Failed to create bootstrap admin: %v", err)
+	}
+	log.Printf("✅ Bootstrap admin created for %s. Remove BOOTSTRAP_ADMIN_* from the production environment after first login.", email)
 }
 
 func SeedData(db *gorm.DB) {
@@ -136,21 +179,21 @@ func SeedData(db *gorm.DB) {
 
 	articles := []models.Article{
 		{
-			Title:        "Peluncuran Satelit Komunikasi Terbaru Indonesia Berhasil Mulus",
-			Slug:         "peluncuran-satelit-komunikasi-terbaru-indonesia-berhasil-mulus",
-			Summary:      "Indonesia sukses meluncurkan satelit generasi baru untuk memperluas jangkauan internet broadband hingga pelosok desa.",
-			Content:      "Satelit komunikasi generasi terbaru berhasil mengangkasa menuju orbit geostasioner pada dini hari tadi. Peluncuran ini menjadi milestone penting dalam pemerataan akses internet berkecepatan tinggi di daerah 3T (Tertinggal, Terdepan, dan Terluar).\n\nMenteri Komunikasi menyatakan bahwa operasional penuh satelit ini ditargetkan mulai kuartal berikutnya, membawa harapan baru bagi efisiensi pembelajaran digital dan ekonomi daerah.",
-			ThumbnailURL: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&auto=format&fit=crop&q=80",
-			CategoryID:   categories[0].ID,
-			AuthorID:     authorUser.ID,
-			Status:       models.StatusPublished,
-			ViewsCount:   342,
-			IsFeatured:   true,
-			IsBreaking:   true,
+			Title:            "Peluncuran Satelit Komunikasi Terbaru Indonesia Berhasil Mulus",
+			Slug:             "peluncuran-satelit-komunikasi-terbaru-indonesia-berhasil-mulus",
+			Summary:          "Indonesia sukses meluncurkan satelit generasi baru untuk memperluas jangkauan internet broadband hingga pelosok desa.",
+			Content:          "Satelit komunikasi generasi terbaru berhasil mengangkasa menuju orbit geostasioner pada dini hari tadi. Peluncuran ini menjadi milestone penting dalam pemerataan akses internet berkecepatan tinggi di daerah 3T (Tertinggal, Terdepan, dan Terluar).\n\nMenteri Komunikasi menyatakan bahwa operasional penuh satelit ini ditargetkan mulai kuartal berikutnya, membawa harapan baru bagi efisiensi pembelajaran digital dan ekonomi daerah.",
+			ThumbnailURL:     "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&auto=format&fit=crop&q=80",
+			CategoryID:       categories[0].ID,
+			AuthorID:         authorUser.ID,
+			Status:           models.StatusPublished,
+			ViewsCount:       342,
+			IsFeatured:       true,
+			IsBreaking:       true,
 			BreakingPriority: 10,
-			CreatedAt:    now1,
-			PublishedAt:  &now1,
-			Tags:         []models.Tag{tags[0], tags[1]},
+			CreatedAt:        now1,
+			PublishedAt:      &now1,
+			Tags:             []models.Tag{tags[0], tags[1]},
 		},
 		{
 			Title:        "Perekonomian Nasional Catat Pertumbuhan 5,2% di Kuartal Ini",

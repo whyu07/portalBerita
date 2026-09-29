@@ -38,3 +38,6 @@ go.work.sum
 backend/*.db
 *.sql
 *.dump
+
+# Deployment backups
+/deploy/backups/

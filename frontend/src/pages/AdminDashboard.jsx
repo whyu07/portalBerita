@@ -65,7 +65,7 @@ export const AdminDashboard = () => {
         api.get('/admin/articles?status=all&limit=100'),
         api.get('/categories'),
         api.get('/tags'),
-        user?.role === 'admin' ? api.get('/admin/articles/popular?period=30d&limit=20') : Promise.resolve({ data: { data: [] } }),
+        user?.role !== 'user' ? api.get('/admin/articles/popular?period=30d&limit=20') : Promise.resolve({ data: { data: [] } }),
       ]);
       setArticles(artRes.data?.data || []);
       setCategories(catRes.data || []);
@@ -165,7 +165,7 @@ export const AdminDashboard = () => {
   };
 
   const handleToggleBreaking = async (art) => {
-    if (user?.role !== 'admin') return;
+    if (user?.role === 'user') return;
     const isBreaking = !art.is_breaking;
     let priority = 0;
     if (isBreaking) {
@@ -278,7 +278,7 @@ export const AdminDashboard = () => {
           <Button onClick={() => handleOpenArticleModal()} variant="primary" id="btn-admin-add-article" icon={<Plus size={16} />}>
             Buat Artikel
           </Button>
-          {user?.role === 'admin' && (
+          {(user?.role === 'admin' || user?.role === 'author') && (
             <>
               <Button onClick={() => handleOpenCategoryModal()} variant="outline" id="btn-admin-add-category" icon={<Plus size={16} />}>
                 Tambah Kategori
@@ -347,7 +347,7 @@ export const AdminDashboard = () => {
                   >
                     {row.status === 'published' ? <EyeOff size={14} /> : <Eye size={14} />}
                   </Button>
-                  {user?.role === 'admin' && (
+                  {(user?.role === 'admin' || user?.role === 'author') && (
                     <Button 
                       variant="outline" size="sm" 
                       onClick={() => handleToggleBreaking(row)} 
@@ -397,7 +397,7 @@ export const AdminDashboard = () => {
       )}
 
       {/* Tags Table */}
-      {activeTab === 'tags' && user?.role === 'admin' && (
+      {activeTab === 'tags' && (user?.role === 'admin' || user?.role === 'author') && (
         <DataTable
           loading={loading}
           error={error}
@@ -421,7 +421,7 @@ export const AdminDashboard = () => {
       )}
 
       {/* Popular News Table */}
-      {activeTab === 'popular' && user?.role === 'admin' && (
+      {activeTab === 'popular' && (user?.role === 'admin' || user?.role === 'author') && (
         <DataTable
           loading={loading}
           error={error}
